@@ -1,4 +1,5 @@
 using IdentiyMail.Web.Context;
+using IdentiyMail.Web.CustomValidation;
 using IdentiyMail.Web.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,18 @@ builder.Services.AddIdentity<AppUser, AppRole>(options =>
 {
     options.User.RequireUniqueEmail = true;
     options.Password.RequireDigit = true;
-}).AddEntityFrameworkStores<AppDbContext>();
+})
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddErrorDescriber<CustomErrorDescriber>();
+
+builder.Services.AddAuthentication();
+
+builder.Services.ConfigureApplicationCookie(config =>
+{
+    config.LoginPath = "/Auth/Login";
+    config.LogoutPath = "/Auth/Logout";
+    config.Cookie.Name = "IdentityMailCookie";
+});
 
 builder.Services.AddControllersWithViews();
 
@@ -35,7 +47,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

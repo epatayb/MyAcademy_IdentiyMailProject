@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace IdentiyMail.Web.Controllers
 {
-    public class AuthController(UserManager<AppUser> _userManager) : Controller
+    public class AuthController(UserManager<AppUser> _userManager,
+                                SignInManager<AppUser> _signInManager) : Controller
     {
         public IActionResult Register()
         {
@@ -40,6 +41,38 @@ namespace IdentiyMail.Web.Controllers
                 }
                 return View(model);
             }            
+            return RedirectToAction("Login");
+        }
+
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginDto model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null) 
+            {
+                ModelState.AddModelError(string.Empty, "Bu email sistemde kayıtlı değil.");
+                return View(model);
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
+
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError(string.Empty,"Email veya şifre hatalı");
+                return View(model);
+            }
+            return RedirectToAction("Index", "Message");
+        }
+
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
             return RedirectToAction("Login");
         }
     }

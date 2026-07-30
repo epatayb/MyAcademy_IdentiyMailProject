@@ -1,2 +1,35 @@
 ﻿@model RegisterDto
+@{
+    ViewData["Title"] = "Kayıt Ol";
+}
 
+<h1>Kullanıcı Kaydı</h1>
+
+<form method="post">
+    <label>Ad</label>
+    <input type="type" asp-for="FirstName" class="form-control" required/>
+    <br />
+
+    <label>Soyad</label>
+    <input type="type" asp-for="LastName" class="form-control" required/>
+    <br />
+
+    <label>Kullanıcı Adı</label>
+    <input type="type" asp-for="UserName" class="form-control" required/>
+    <br />
+
+    <label>Email</label>
+    <input type="email" asp-for="Email" class="form-control" required />
+    <br />
+
+    <label>Şifre</label>
+    <input type="password" asp-for="Password" class="form-control" required />
+    <br />
+    
+    <label>Şifre Tekrar</label>
+    <input type="password" asp-for="ConfirmPassword" class="form-control" required />
+    <br />
+
+    <span class="text-danger">@Html.ValidationSummary()</span>
+    <button class="btn btn-outline-dark">Kayıt Ol</button>
+</form>
