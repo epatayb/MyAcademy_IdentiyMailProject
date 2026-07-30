@@ -1,0 +1,26 @@
+﻿@model SendMailDto
+@{
+    ViewData["Title"] = "Mail Oluştur";
+}
+
+<h1>Yeni Mail Gönder</h1>
+
+<form method="post">
+    <label>Alıcı Mail</label>
+    <input type="text" asp-for="ReceiverMail" class="form-control" required/>
+    <br />
+
+    <label>Konu</label>
+    <input type="text" asp-for="Subject" class="form-control" required />
+    <br />
+
+    <label>Mail içeriği</label>
+    <textarea asp-for="Body" class="form-control" required rows="10">
+    </textarea> 
+    <br />
+
+    <span class="text-danger">@Html.ValidationSummary()</span>
+
+    <button class="btn btn-dark">Gönder</button>
+
+</form>

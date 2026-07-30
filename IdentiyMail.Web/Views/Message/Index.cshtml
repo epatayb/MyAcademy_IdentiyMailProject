@@ -1,0 +1,35 @@
+﻿@model List<UserMessage>
+@{
+    ViewData["Title"] = "Mesajlar";
+}
+
+<h1>Merhaba, @ViewBag.fullName</h1>
+
+<h3>Gelen Mesajlar</h3>
+
+<table class="table table-bordered table-hover">
+    <tr>
+        <td>Gönderen Ad Soyad</td>
+        <td>Email</td>
+        <td>Konu</td>
+        <td>Tarih</td>
+        <td class="text-end">İşlemler</td>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Sender.FirstName @item.Sender.LastName</td>
+            <td>@item.Sender.Email</td>
+            <td>@item.Subject</td>
+            <td>@item.SendDate</td>
+            <td class="text-end">
+                <a href="/Message/MailDetail/@item.Id" class="btn btn-outline-info">Maili Görüntüle</a>
+                <a href="#" class="btn btn-outline-danger">Sil</a>
+            </td>
+        </tr>
+    }
+</table>
+
+<a asp-action="SendMail" asp-controller="Message" class="btn btn-outline-dark">Yeni Mail Gönder</a>
+
