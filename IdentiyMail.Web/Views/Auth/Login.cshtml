@@ -12,6 +12,8 @@
     </div>
 }
 
+<span class="text-danger">@Html.ValidationSummary()</span>
+
 <form method="post">
     <label>Email</label>
     <input type="email" asp-for="Email" class="form-control" required/>
@@ -26,8 +28,6 @@
        class="text-decoration-none">
         Şifremi Unuttum
     </a>
-
-    <span class="text-danger">@Html.ValidationSummary()</span>
 
     <button class="btn btn-outline-primary">Giriş Yap</button>
 </form>

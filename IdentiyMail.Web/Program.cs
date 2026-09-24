@@ -22,7 +22,8 @@ builder.Services.AddIdentity<AppUser, AppRole>(options =>
     options.Password.RequireDigit = true;
 })
     .AddEntityFrameworkStores<AppDbContext>()
-    .AddErrorDescriber<CustomErrorDescriber>();
+    .AddErrorDescriber<CustomErrorDescriber>()
+    .AddDefaultTokenProviders();
 
 builder.Services.AddAuthentication();
 
@@ -36,9 +37,10 @@ builder.Services.ConfigureApplicationCookie(config =>
 builder.Services.AddControllersWithViews();
 
 builder.Services.Configure<MailSettings>(
-    builder.Configuration.GetSection("MailSettings"));
+    builder.Configuration.GetSection("Smtp"));
 
 builder.Services.AddScoped<IMailService, SmtpMailService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

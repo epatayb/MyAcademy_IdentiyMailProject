@@ -188,7 +188,7 @@ namespace IdentiyMail.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Şifre yenileme maili gönderilirken bir hata oluştu.");
+                    _logger.LogError(ex, "Şifre yenileme maili gönderilirken bir hata oluştu.");                    
                 }
             }
 

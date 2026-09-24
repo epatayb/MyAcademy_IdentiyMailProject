@@ -12,7 +12,7 @@ namespace IdentiyMail.Web.Services
         {
             using var message = new MailMessage
             {
-                From = new MailAddress(_settings.SenderEmail, _settings.SenderName),
+                From = new MailAddress(_settings.FromEmail, _settings.FromName),
                 Subject = subject,
                 Body = htmlBody,
                 IsBodyHtml = true
@@ -22,7 +22,7 @@ namespace IdentiyMail.Web.Services
 
             using var smtpClient = new SmtpClient(_settings.Host, _settings.Port)
             {
-                Credentials = new NetworkCredential(_settings.Username, _settings.Password),
+                Credentials = new NetworkCredential(_settings.UserName, _settings.Password),
                 EnableSsl = _settings.EnableSsl
             };
 
