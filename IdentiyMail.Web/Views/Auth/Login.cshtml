@@ -5,6 +5,13 @@
 
 <h1>Giriş Yap</h1>
 
+@if (TempData["AuthSuccess"] is not null)
+{
+    <div class="alert alert-success">
+        @TempData["AuthSuccess"]
+    </div>
+}
+
 <form method="post">
     <label>Email</label>
     <input type="email" asp-for="Email" class="form-control" required/>
@@ -13,6 +20,12 @@
     <label>Şifre</label>
     <input type="password" asp-for="Password" class="form-control" required />
     <br />
+
+    <a asp-controller="Auth"
+       asp-action="ForgotPassword"
+       class="text-decoration-none">
+        Şifremi Unuttum
+    </a>
 
     <span class="text-danger">@Html.ValidationSummary()</span>
 

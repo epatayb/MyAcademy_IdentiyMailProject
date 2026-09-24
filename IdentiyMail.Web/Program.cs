@@ -1,6 +1,8 @@
 using IdentiyMail.Web.Context;
 using IdentiyMail.Web.CustomValidation;
 using IdentiyMail.Web.Entities;
+using IdentiyMail.Web.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,7 +35,31 @@ builder.Services.ConfigureApplicationCookie(config =>
 
 builder.Services.AddControllersWithViews();
 
+builder.Services.Configure<MailSettings>(
+    builder.Configuration.GetSection("MailSettings"));
+
+builder.Services.AddScoped<IMailService, SmtpMailService>();
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider
+        .GetRequiredService<RoleManager<AppRole>>();
+
+    string[] roles = { "User", "Admin" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new AppRole
+            {
+                Name = role
+            });
+        }
+    }
+}
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
