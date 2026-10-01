@@ -1,0 +1,29 @@
+﻿<header class="mail-topbar">
+    @* #region Mobil menü butonu *@
+    <button type="button"
+            class="mail-mobile-menu"
+            id="mailSidebarOpen"
+            aria-label="Menüyü aç">
+
+            <span class="material-symbols-outlined">menu</span>
+
+    </button>
+    @* #endregion *@
+
+    @* #region Mesaj arama alanı *@
+    <div class="mail-search">
+        <span class="material-symbols-outlined mail-search-icon">search</span>
+
+        <input type="text"
+               placeholder="Mesajlarda ara..."
+               aria-label="Mesajlarda ara" />
+
+    </div>
+    @* #endregion *@
+
+    @* #region Giriş yapan kullanıcı *@
+    <div class="mail-topbar-user">
+        @await Component.InvokeAsync("MailUser")
+    </div>
+    @* #endregion *@
+</header>

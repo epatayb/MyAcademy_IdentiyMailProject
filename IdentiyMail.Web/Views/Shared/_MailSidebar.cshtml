@@ -1,0 +1,111 @@
+﻿@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+    string GetActiveClass(string controller, string action)
+    {
+        return string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase)
+                ? "is-active"
+                : string.Empty;
+    }
+}
+
+<aside class="mail-sidebar" id="mailSidebar">
+    
+    @* #region Logo *@
+    <div class="mail-sidebar-header">
+        <a asp-controller="Message" asp-action="Index" class="mail-brand">
+            <span class="mail-brand-icon">
+                <span class="material-symbols-outlined">
+                    mail
+                </span>
+            </span>
+            
+            <span>Identity Mail</span>
+        </a>
+
+        <button type="button" 
+                class="mail-sidebar-close" 
+                id="mailSidebarClose"
+                aria-label="Menüyü Kapat">
+                
+                <span class="material-symbols-outlined">
+                    close
+                </span>
+        </button>
+    </div>
+    @* #endregion *@
+
+    @* #region Yeni mesaj *@
+    <div class="mail-compose-wrapper">
+        <a asp-controller="Message"
+            asp-action="SendMail"
+            class="mail-compose-button">
+            
+            <span class="material-symbols-outlined">
+                edit_square
+            </span>
+
+            <span>Yeni Mesaj</span>
+        </a>
+    </div>
+    @* #endregion *@
+
+    @* #region Mesaj menüsü *@
+    <nav class="mail-navigation">
+
+        <a asp-controller="Message"
+            asp-action="Index"
+            class="mail-nav-item @GetActiveClass("Message","Index")">
+            
+            <span class="material-symbols-outlined">
+                inbox
+            </span>
+
+            <span>Gelen Kutusu</span>
+        </a>
+
+        <a asp-controller="Message"
+            asp-action="Sent"
+            class="mail-nav-item @GetActiveClass("Message", "Sent")">
+
+            <span class="material-symbols-outlined">
+                send
+            </span>
+
+            <span>Gönderilenler</span>
+
+        </a>
+    </nav>
+    @* #endregion *@
+
+    @* #region Hesap işlemleri *@
+    <div class="mail-sidebar-footer">
+        <a asp-controller="Account"
+            asp-action="Index"
+            class="mail-nav-item @GetActiveClass("Account", "Index")">
+            
+            <span class="material-symbols-outlined">
+                manage_accounts
+            </span>
+
+            <span>Hesabım</span>
+        </a>
+
+        <form asp-controller="Auth"
+              asp-action="Logout"
+              method="post">
+
+              <button type="submit" class="mail-nav-item mail-logout">
+                  <span class="material-symbols-outlined">
+                      logout
+                  </span>
+
+                  <span>Çıkış Yap</span>
+              </button>
+        </form>
+    </div>
+    @* #endregion *@
+</aside>
+<div class="mail-sidebar-overlay" id="mailSidebarOverlay"></div>

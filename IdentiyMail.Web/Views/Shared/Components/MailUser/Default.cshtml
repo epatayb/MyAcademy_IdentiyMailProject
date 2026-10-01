@@ -1,0 +1,33 @@
+﻿@model MailUserViewModel
+
+<a asp-controller="Account"
+   asp-action="Index"
+   class="mail-user">
+
+   @if (!string.IsNullOrWhiteSpace(Model.ProfileImageUrl))
+   {
+       <img src="@Model.ProfileImageUrl"
+            alt="@Model.FullName"
+            class="mail-user-image" />
+   }
+   else
+   {
+       <span class="mail-user-avatar">
+           @Model.Initials
+       </span>
+   }
+
+   <span class="mail-user-info">
+       <span class="mail-user-name">
+           @Model.FullName
+       </span>
+
+       <span class="mail-user-email">
+           @Model.Email
+       </span>
+   </span>
+
+   <span class="material-symbols-outlined mail-user-arrow">
+       expand_more
+   </span>
+</a>

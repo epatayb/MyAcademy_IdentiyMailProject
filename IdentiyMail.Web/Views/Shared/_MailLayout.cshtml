@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - Identity Mail</title>
+
+    @* #region Font ve ikonlar *@
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    @* #endregion *@
+    
+    @* #region Stil dosyaları *@
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <link rel="stylesheet" href="~/css/mail.css" asp-append-version="true" />
+
+    <link rel="stylesheet" href="~/IdentiyMail.Web.styles.css" asp-append-version="true" />
+    @* #endregion *@
+</head>
+
+<body class="mail-body">
+      @* #region Mail uygulama kabuğu *@
+      <div class="mail-shell">
+          <partial name="_MailSidebar" />
+
+          <div class="mail-main">
+              <partial name="_MailTopbar" />
+
+              <main class="mail-content">
+                  @RenderBody()
+              </main>
+          </div>
+      </div>
+      @* #endregion *@
+
+      @* #region Script dosyaları *@
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script src="~/js/mail.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    @* #endregion *@
+
+</body>
+
+</html>
