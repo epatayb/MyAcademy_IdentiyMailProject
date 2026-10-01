@@ -5,7 +5,7 @@
 
 <h1>Yeni Mail Gönder</h1>
 
-<form method="post">
+<form asp-controller="Message" asp-action="SendMail" method="post">
     <label>Alıcı Mail</label>
     <input type="text" asp-for="ReceiverMail" class="form-control" required/>
     <br />

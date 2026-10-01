@@ -38,6 +38,7 @@ namespace IdentiyMail.Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SendMail(SendMailDto sendMailDto)
         {
             if (!ModelState.IsValid)
@@ -74,7 +75,9 @@ namespace IdentiyMail.Web.Controllers
             _context.UserMessages.Add(newMessage);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Index");
+            TempData["MessageSuccess"] = "Mesajınız başarıyla gönderildi.";
+
+            return RedirectToAction(nameof(Sent));
         }
 
         public async Task<IActionResult> MailDetail(int id)
@@ -100,6 +103,43 @@ namespace IdentiyMail.Web.Controllers
                 message.IsRead = true;
                 await _context.SaveChangesAsync();
             }
+            return View(message);
+        }
+
+        public async Task<IActionResult> Sent()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user is null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var messages = await _context.UserMessages
+                .Include(x => x.Receiver)
+                .Where(x => x.SenderId == user.Id)
+                .OrderByDescending(x => x.SendDate)
+                .ToListAsync();
+
+            return View(messages);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SentMailDetail(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user is null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var message = await _context.UserMessages
+                .Include(x => x.Receiver)
+                .FirstOrDefaultAsync(x => x.Id == id && x.SenderId == user.Id);
+            if (message is null)
+            {
+                return NotFound();
+            }
+
             return View(message);
         }
     }
