@@ -350,7 +350,7 @@ body {
 /* #endregion */
 
 /* #region Tablet görünümü */
-@media (max-width: 992px) {
+@media (max-width: 1200px) {
 
     .mail-sidebar {
         transform: translateX(-100%);
@@ -405,4 +405,459 @@ body {
         padding-left: 10px;
     }
 }
+/* #endregion */
+
+/* #region Gelen kutusu sayfası */
+.mail-inbox-page {
+    padding: 18px;
+}
+
+.mail-inbox-panel {
+    overflow: hidden;
+    background: var(--mail-surface);
+    border: 1px solid var(--mail-border);
+    border-radius: var(--mail-radius-md);
+}
+
+/* #region Gelen kutusu başlığı */
+
+.mail-inbox-header {
+    min-height: 72px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    border-bottom: 1px solid var(--mail-border);
+}
+
+.mail-inbox-heading {
+    min-width: 0;
+}
+
+.mail-inbox-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .mail-inbox-title-row h1 {
+        margin: 0;
+        color: var(--mail-text);
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+.mail-unread-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #eef3ff;
+    color: var(--mail-primary);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.mail-unread-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--mail-primary);
+}
+
+.mail-inbox-total {
+    display: block;
+    margin-top: 3px;
+    color: var(--mail-text-muted);
+    font-size: 11px;
+}
+
+/* #endregion */
+
+/* #region Gelen kutusu filtreleri */
+
+.mail-inbox-filters {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px;
+    border-radius: var(--mail-radius-md);
+    background: var(--mail-surface-soft);
+}
+
+.mail-filter-tab {
+    min-height: 30px;
+    padding: 5px 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 6px;
+    color: var(--mail-text-muted);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+    .mail-filter-tab:hover {
+        color: var(--mail-text);
+    }
+
+    .mail-filter-tab.is-active {
+        background: var(--mail-surface);
+        color: var(--mail-primary);
+        font-weight: 600;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .06);
+    }
+
+.mail-filter-count {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--mail-primary);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* #endregion */
+
+/* #region Mesaj listesi */
+
+.mail-message-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.mail-message-row {
+    position: relative;
+    min-height: 62px;
+    padding: 10px 16px;
+    display: grid;
+    grid-template-columns: 22px 34px 175px minmax(0, 1fr) 72px;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #eef1f5;
+    color: inherit;
+    text-decoration: none;
+    background: var(--mail-surface);
+    transition: background-color .12s ease;
+}
+
+    .mail-message-row:last-child {
+        border-bottom: 0;
+    }
+
+    .mail-message-row:hover {
+        background: #f5f7fb;
+        color: inherit;
+    }
+
+    .mail-message-row.is-unread {
+        background: #f5f8ff;
+    }
+
+        .mail-message-row.is-unread:hover {
+            background: #edf3ff;
+        }
+
+        .mail-message-row.is-unread::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 3px;
+            background: var(--mail-primary);
+        }
+
+
+/* #region Önemli yıldızı */
+
+.mail-message-star {
+    color: #c2c8d2;
+    font-size: 20px;
+    font-variation-settings: "FILL" 0;
+}
+
+    .mail-message-star.is-important {
+        color: #f59e0b;
+        font-variation-settings: "FILL" 1;
+    }
+
+/* #endregion */
+
+/* #region Mesaj avatarı */
+
+.mail-message-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.mail-message-initials {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #dce6ff;
+    color: var(--mail-primary);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* #endregion */
+
+/* #region Gönderen bilgisi */
+
+.mail-message-sender {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mail-message-sender-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--mail-text);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.mail-message-row.is-unread .mail-message-sender-name {
+    font-weight: 700;
+}
+
+.mail-message-sender-email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--mail-text-muted);
+    font-size: 10px;
+}
+
+/* #endregion */
+
+
+/* #region Konu ve mesaj önizleme */
+
+.mail-message-content {
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    overflow: hidden;
+}
+
+.mail-message-subject {
+    flex: 0 1 auto;
+    max-width: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--mail-text);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.mail-message-row.is-unread .mail-message-subject {
+    font-weight: 700;
+}
+
+.mail-message-preview {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--mail-text-muted);
+    font-size: 12px;
+}
+
+/* #endregion */
+
+/* #region Mesaj tarihi */
+
+.mail-message-date {
+    justify-self: end;
+    color: var(--mail-text-muted);
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.mail-message-row.is-unread .mail-message-date {
+    color: var(--mail-primary);
+    font-weight: 700;
+}
+
+/* #endregion */
+
+
+/* #region Boş durum */
+
+.mail-empty-state {
+    min-height: 300px;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+    .mail-empty-state > .material-symbols-outlined {
+        margin-bottom: 12px;
+        color: #a3adbd;
+        font-size: 42px;
+    }
+
+    .mail-empty-state h2 {
+        margin: 0;
+        color: var(--mail-text);
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .mail-empty-state p {
+        max-width: 360px;
+        margin: 6px 0 0;
+        color: var(--mail-text-muted);
+        font-size: 12px;
+    }
+
+/* #endregion */
+
+/* #endregion */
+
+
+/* #region Gelen kutusu tablet görünümü */
+@media (max-width: 1200px) {
+
+    .mail-message-row {
+        grid-template-columns: 22px 34px 145px minmax(0, 1fr) 64px;
+    }
+
+    .mail-message-sender-email {
+        display: none;
+    }
+}
+
+/* #endregion */
+
+
+/* #region Gelen kutusu mobil görünümü */
+
+@media (max-width: 768px) {
+
+    .mail-inbox-page {
+        padding: 10px;
+    }
+
+    .mail-inbox-header {
+        padding: 12px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .mail-inbox-title-row {
+        justify-content: space-between;
+    }
+
+    .mail-inbox-filters {
+        width: 100%;
+    }
+
+    .mail-filter-tab {
+        flex: 1;
+    }
+
+
+    .mail-message-row {
+        min-height: 82px;
+        padding: 10px 10px;
+        grid-template-columns: 20px 34px minmax(0, 1fr) auto;
+        grid-template-rows: auto auto;
+        column-gap: 9px;
+        row-gap: 4px;
+    }
+
+    .mail-message-star {
+        grid-column: 1;
+        grid-row: 1 / 3;
+        align-self: center;
+    }
+
+    .mail-message-avatar {
+        grid-column: 2;
+        grid-row: 1 / 3;
+        align-self: center;
+    }
+
+    .mail-message-sender {
+        grid-column: 3;
+        grid-row: 1;
+    }
+
+    .mail-message-sender-email {
+        display: none;
+    }
+
+    .mail-message-content {
+        grid-column: 3 / 5;
+        grid-row: 2;
+    }
+
+    .mail-message-subject {
+        max-width: 55%;
+    }
+
+    .mail-message-date {
+        grid-column: 4;
+        grid-row: 1;
+        padding-left: 8px;
+    }
+}
+
+/* #endregion */
+
+
+/* #region Gelen kutusu küçük mobil görünümü */
+
+@media (max-width: 480px) {
+
+    .mail-unread-summary {
+        font-size: 10px;
+    }
+
+    .mail-message-content {
+        gap: 5px;
+    }
+
+    .mail-message-subject {
+        flex: 0 1 auto;
+        max-width: 48%;
+        font-size: 12px;
+    }
+
+    .mail-message-preview {
+        display: block;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 11px;
+    }
+}
+
 /* #endregion */

@@ -1,6 +1,7 @@
 ﻿using IdentiyMail.Web.Context;
 using IdentiyMail.Web.DTOs.UserMessageDtos;
 using IdentiyMail.Web.Entities;
+using IdentiyMail.Web.ViewModels.MessageViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,8 @@ namespace IdentiyMail.Web.Controllers
     [Authorize]
     public class MessageController(UserManager<AppUser> _userManager, AppDbContext _context) : Controller
     {
-        public async Task<IActionResult> Index()
+        #region Gelen kutusu listeleme ve filtreleme
+        public async Task<IActionResult> Index(string status = "all")
         {
             var user = await _userManager.GetUserAsync(User);
 
@@ -21,16 +23,90 @@ namespace IdentiyMail.Web.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
-            ViewBag.fullName = $"{user.FirstName} {user.LastName}";
+            #region Gelen kutusu temel sorgusu
 
-            var messages = await _context.UserMessages
-                .Include(x => x.Sender)
-                .Where(x => x.ReceiverId == user.Id)
+            var inboxQuery = _context.UserMessages
+                .AsNoTracking()
+                .Where(x => x.ReceiverId == user.Id);
+
+            var totalCount = await inboxQuery.CountAsync();
+
+            var unreadCount = await inboxQuery.CountAsync(x => !x.IsRead);
+
+            #endregion
+
+            #region Okunma durumuna göre filtreleme
+
+            status = status?.ToLowerInvariant() switch
+            {
+                "unread" => "unread",
+                "read" => "read",
+                _ => "all"
+            };
+
+            var filteredQuery = status switch
+            {
+                "unread" => inboxQuery.Where(x => !x.IsRead),
+                "read" => inboxQuery.Where(x => x.IsRead),
+                _ => inboxQuery
+            };
+
+            #endregion
+
+            #region Mesajları ViewModele dönüştürme
+
+            var messages = await filteredQuery
                 .OrderByDescending(x => x.SendDate)
+                .Select(x => new
+                {
+                    x.Id,
+
+                    SenderFirstName = x.Sender.FirstName,
+                    SenderLastName = x.Sender.LastName,
+                    SenderEmail = x.Sender.Email,
+                    x.Sender.ProfileImageUrl,
+
+                    x.Subject,
+                    x.Body,
+                    x.SendDate,
+                    x.IsRead,
+                    x.IsImportant
+                })
                 .ToListAsync();
 
-            return View(messages);
+            var messageViewModels = messages
+                .Select(x => new InboxMessageViewModel
+                {
+                    Id = x.Id,
+                    SenderFullName = $"{x.SenderFirstName} {x.SenderLastName}".Trim(),
+                    SenderEmail = x.SenderEmail ?? string.Empty,
+                    SenderProfileImageUrl = x.ProfileImageUrl,
+                    SenderInitials = CreateInitials(x.SenderFirstName, x.SenderLastName),
+                    Subject = x.Subject,
+                    Preview = CreateMessagePreview(x.Body),
+                    SendDate = x.SendDate,
+                    IsRead = x.IsRead,
+                    IsImportant = x.IsImportant
+                })
+                .ToList();
+
+            #endregion
+
+            #region Gelen kutusu ekran modelini hazırlama
+
+            var model = new InboxViewModel
+            {
+                Messages = messageViewModels,
+                TotalCount = totalCount,
+                UnreadCount = unreadCount,
+                Status = status
+            };
+
+            #endregion
+
+            return View(model);
         }
+        #endregion
 
         public IActionResult SendMail()
         {
@@ -142,5 +218,36 @@ namespace IdentiyMail.Web.Controllers
 
             return View(message);
         }
+
+        #region Mesaj Listeleme Yardımcı Metotları
+        private static string CreateInitials(string firstName, string lastName)
+        {
+            var firstNameInitial = string.IsNullOrWhiteSpace(firstName)
+                ? string.Empty
+                : firstName[..1].ToUpper();
+
+            var lastNameInitial = string.IsNullOrWhiteSpace(lastName)
+                ? string.Empty
+                : lastName[..1].ToUpper();
+
+            return $"{firstNameInitial}{lastNameInitial}";
+        }
+
+        private static string CreateMessagePreview(string body)
+        {
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                return "Mesaj içeriği bulunmuyor.";
+            }
+            
+            var normalizedBody = string.Join(" ", body.Split(new[] { ' ', '\r', '\n', 't'}, StringSplitOptions.RemoveEmptyEntries));
+
+            const int maxLength = 110;
+
+            return normalizedBody.Length <= maxLength
+                ? normalizedBody
+                : $"{normalizedBody[..maxLength]}...";
+        }
+        #endregion
     }
 }
