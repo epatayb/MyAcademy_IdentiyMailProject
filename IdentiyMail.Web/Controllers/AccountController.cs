@@ -136,6 +136,8 @@ namespace IdentiyMail.Web.Controllers
                     System.IO.File.Delete(newImagePath);
                 }
 
+                user.ProfileImageUrl = oldImageUrl;
+
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);

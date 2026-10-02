@@ -1,0 +1,86 @@
+﻿@using System.Globalization
+@model InboxMessageViewModel
+
+@{
+    var trCulture = new CultureInfo("tr-TR");
+}
+
+<div class="mail-message-row-wrapper">
+
+    <a asp-controller="Message"
+       asp-action="MailDetail"
+       asp-route-id="@Model.Id"
+       class="mail-message-row @(!Model.IsRead ? "is-unread" : "")">
+
+        <span class="mail-message-star-space"></span>
+
+        @if (!string.IsNullOrWhiteSpace(Model.SenderProfileImageUrl))
+        {
+            <img src="@Model.SenderProfileImageUrl"
+                 alt="@Model.SenderFullName"
+                 class="mail-message-avatar" />
+        }
+        else
+        {
+            <span class="mail-message-avatar mail-message-initials">
+                @Model.SenderInitials
+            </span>
+        }
+
+        <div class="mail-message-sender">
+            <span class="mail-message-sender-name">
+                @Model.SenderFullName
+            </span>
+
+            <span class="mail-message-sender-email">
+                @Model.SenderEmail
+            </span>
+        </div>
+
+        <div class="mail-message-content">
+            <span class="mail-message-subject">
+                @Model.Subject
+            </span>
+
+            <span class="mail-message-preview">
+                — @Model.Preview
+            </span>
+        </div>
+
+        <time class="mail-message-date">
+            @if (Model.SendDate.Date == DateTime.Today)
+            {
+                @Model.SendDate.ToString("HH:mm")
+            }
+            else if (Model.SendDate.Date == DateTime.Today.AddDays(-1))
+            {
+                <text>Dün</text>
+            }
+            else if (Model.SendDate.Year == DateTime.Today.Year)
+            {
+                @Model.SendDate.ToString("dd MMM", trCulture)
+            }
+            else
+            {
+                @Model.SendDate.ToString("dd MMM yyyy", trCulture)
+            }
+        </time>
+    </a>
+
+    <form asp-controller="Message"
+          asp-action="ToggleImportant"
+          asp-route-id="@Model.Id"
+          asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
+          method="post"
+          class="mail-message-star-form">
+
+        <button type="submit"
+                class="mail-message-star-button @(Model.IsImportant ? "is-important" : "")"
+                title="@(Model.IsImportant ? "Önemliden kaldır" : "Önemli olarak işaretle")">
+
+            <span class="material-symbols-outlined">
+                star
+            </span>
+        </button>
+    </form>
+</div>

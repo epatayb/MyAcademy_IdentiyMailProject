@@ -16,18 +16,13 @@ namespace IdentiyMail.Web.Controllers
         #region Gelen kutusu listeleme ve filtreleme
         public async Task<IActionResult> Index(string status = "all")
         {
-            var user = await _userManager.GetUserAsync(User);
-
-            if (user is null) 
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+            var userId = GetCurrentUserId();
 
             #region Gelen kutusu temel sorgusu
 
             var inboxQuery = _context.UserMessages
                 .AsNoTracking()
-                .Where(x => x.ReceiverId == user.Id);
+                .Where(x => x.ReceiverId == userId);
 
             var totalCount = await inboxQuery.CountAsync();
 
@@ -53,44 +48,7 @@ namespace IdentiyMail.Web.Controllers
 
             #endregion
 
-            #region Mesajları ViewModele dönüştürme
-
-            var messages = await filteredQuery
-                .OrderByDescending(x => x.SendDate)
-                .Select(x => new
-                {
-                    x.Id,
-
-                    SenderFirstName = x.Sender.FirstName,
-                    SenderLastName = x.Sender.LastName,
-                    SenderEmail = x.Sender.Email,
-                    x.Sender.ProfileImageUrl,
-
-                    x.Subject,
-                    x.Body,
-                    x.SendDate,
-                    x.IsRead,
-                    x.IsImportant
-                })
-                .ToListAsync();
-
-            var messageViewModels = messages
-                .Select(x => new InboxMessageViewModel
-                {
-                    Id = x.Id,
-                    SenderFullName = $"{x.SenderFirstName} {x.SenderLastName}".Trim(),
-                    SenderEmail = x.SenderEmail ?? string.Empty,
-                    SenderProfileImageUrl = x.ProfileImageUrl,
-                    SenderInitials = CreateInitials(x.SenderFirstName, x.SenderLastName),
-                    Subject = x.Subject,
-                    Preview = CreateMessagePreview(x.Body),
-                    SendDate = x.SendDate,
-                    IsRead = x.IsRead,
-                    IsImportant = x.IsImportant
-                })
-                .ToList();
-
-            #endregion
+            var messageViewModels = await GetInboxMessageItemsAsync(filteredQuery);
 
             #region Gelen kutusu ekran modelini hazırlama
 
@@ -122,12 +80,7 @@ namespace IdentiyMail.Web.Controllers
                 return View(sendMailDto);
             }
 
-            var sender = await _userManager.GetUserAsync(User);
-
-            if (sender is null)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+            var senderId = GetCurrentUserId();
 
             var receiver = await _userManager.FindByEmailAsync(sendMailDto.ReceiverMail);
 
@@ -141,7 +94,7 @@ namespace IdentiyMail.Web.Controllers
             {
                 SendDate = DateTime.Now,
                 ReceiverId = receiver.Id,
-                SenderId = sender.Id,
+                SenderId = senderId,
                 Subject = sendMailDto.Subject,
                 Body = sendMailDto.Body,
                 IsRead = false,
@@ -158,16 +111,11 @@ namespace IdentiyMail.Web.Controllers
 
         public async Task<IActionResult> MailDetail(int id)
         {
-            var user = await _userManager.GetUserAsync(User);
-
-            if (user is null)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+            var userId = GetCurrentUserId();
 
             var message = await _context.UserMessages
                 .Include(x => x.Sender)
-                .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == user.Id);
+                .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == userId);
 
             if (message is null)
             {
@@ -184,15 +132,12 @@ namespace IdentiyMail.Web.Controllers
         
         public async Task<IActionResult> Sent()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user is null)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+            var userId = GetCurrentUserId();
 
             var messages = await _context.UserMessages
+                .AsNoTracking()
                 .Include(x => x.Receiver)
-                .Where(x => x.SenderId == user.Id)
+                .Where(x => x.SenderId == userId)
                 .OrderByDescending(x => x.SendDate)
                 .ToListAsync();
 
@@ -202,15 +147,13 @@ namespace IdentiyMail.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> SentMailDetail(int id)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user is null)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+            var userId = GetCurrentUserId();
 
             var message = await _context.UserMessages
+                .AsNoTracking()
                 .Include(x => x.Receiver)
-                .FirstOrDefaultAsync(x => x.Id == id && x.SenderId == user.Id);
+                .FirstOrDefaultAsync(x => x.Id == id && x.SenderId == userId);
+
             if (message is null)
             {
                 return NotFound();
@@ -222,17 +165,12 @@ namespace IdentiyMail.Web.Controllers
         #region Mesaj önemli durumunu değiştirme
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToogleImportant(int id, string? returnUrl)
+        public async Task<IActionResult> ToggleImportant(int id, string? returnUrl)
         {
-            var user = await _userManager.GetUserAsync(User);
-
-            if (user is null)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+            var userId = GetCurrentUserId();
 
             var message = await _context.UserMessages
-                .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == user.Id);
+                .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == userId);
 
             if (message is null)
             {
@@ -255,51 +193,28 @@ namespace IdentiyMail.Web.Controllers
         #region Önemli mesajları listeleme
         public async Task<IActionResult> Important()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var userId = GetCurrentUserId();
 
-            if (user is null)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+            var query = _context.UserMessages
+                .Where(x => x.ReceiverId == userId && x.IsImportant);
 
-            var messages = await _context.UserMessages
-                .AsNoTracking()
-                .Where(x => x.ReceiverId == user.Id && x.IsImportant)
-                .OrderByDescending(x => x.SendDate)
-                .Select(x => new
-                {
-                    x.Id,
-                    
-                    SenderFirstName = x.Sender.FirstName,
-                    SenderLastName = x.Sender.LastName,
-                    SenderEmail = x.Sender.Email,
-                    x.Sender.ProfileImageUrl,
-
-                    x.Subject,
-                    x.Body,
-                    x.SendDate,
-                    x.IsRead,
-                    x.IsImportant
-                })
-                .ToListAsync();
-
-            var model = messages
-                .Select(x => new InboxMessageViewModel
-                {
-                    Id = x.Id,
-                    SenderFullName = $"{x.SenderFirstName} {x.SenderLastName}".Trim(),
-                    SenderEmail = x.SenderEmail ?? string.Empty,
-                    SenderProfileImageUrl = x.ProfileImageUrl,
-                    SenderInitials = CreateInitials(x.SenderFirstName, x.SenderLastName),
-                    Subject = x.Subject,
-                    Preview = CreateMessagePreview(x.Body),
-                    SendDate = x.SendDate,
-                    IsRead = x.IsRead,
-                    IsImportant = x.IsImportant
-                })
-                .ToList();
+            var model = await GetInboxMessageItemsAsync(query);
 
             return View(model);
+        }
+        #endregion
+
+        #region Giriş yapan kullanıcı bilgileri
+        private int GetCurrentUserId()
+        {
+            var userId = _userManager.GetUserId(User);
+
+            if (!int.TryParse(userId, out var currentUserId))
+            {
+                throw new InvalidOperationException("Giriş yapan kullanıcının kimliği alınamadı.");
+            }
+
+            return currentUserId;
         }
         #endregion
 
@@ -332,6 +247,46 @@ namespace IdentiyMail.Web.Controllers
                 ? normalizedBody
                 : $"{normalizedBody[..maxLength]}...";
         }
+
+        private async Task<List<InboxMessageViewModel>> GetInboxMessageItemsAsync(IQueryable<UserMessage> query)
+        {
+            var messages = await query
+                .AsNoTracking()
+                .OrderByDescending(x => x.SendDate)
+                .Select(x => new
+                {
+                    x.Id,
+
+                    SenderFirstName = x.Sender.FirstName,
+                    SenderLastName = x.Sender.LastName,
+                    SenderEmail = x.Sender.Email,
+                    x.Sender.ProfileImageUrl,
+
+                    x.Subject,
+                    x.Body,
+                    x.SendDate,
+                    x.IsImportant,
+                    x.IsRead
+                })
+                .ToListAsync();
+
+            return messages
+                .Select(x => new InboxMessageViewModel
+                {
+                    Id = x.Id,
+                    SenderFullName = $"{x.SenderFirstName} {x.SenderLastName}".Trim(),
+                    SenderEmail = x.SenderEmail ?? string.Empty,
+                    SenderProfileImageUrl = x.ProfileImageUrl,
+                    SenderInitials = CreateInitials(x.SenderFirstName, x.SenderLastName),
+                    Subject = x.Subject,
+                    Preview = CreateMessagePreview(x.Body),
+                    SendDate = x.SendDate,
+                    IsRead = x.IsRead,
+                    IsImportant = x.IsImportant
+                })
+                .ToList();
+        }
+
         #endregion
     }
 }

@@ -1,9 +1,7 @@
-﻿@using System.Globalization
-@model InboxViewModel
+﻿@model InboxViewModel
 
 @{
     ViewData["Title"] = "Gelen Kutusu";
-    var trCulture = new CultureInfo("tr-TR");
 }
 
 <section class="mail-inbox-page">
@@ -101,90 +99,7 @@
             <div class="mail-message-list">
                 @foreach (var item in Model.Messages)
                 {
-                    <div class="mail-message-row-wrapper">
-
-                        <a asp-controller="Message"
-                           asp-action="MailDetail"
-                           asp-route-id="@item.Id"
-                           class="mail-message-row @(!item.IsRead ? "is-unread" : "")">
-
-                            <span class="mail-message-star-space"></span>
-
-                            @if (!string.IsNullOrWhiteSpace(item.SenderProfileImageUrl))
-                            {
-                                <img src="@item.SenderProfileImageUrl"
-                                     alt="@item.SenderFullName"
-                                     class="mail-message-avatar" />
-                            }
-                            else
-                            {
-                                <span class="mail-message-avatar mail-message-initials">
-                                    @item.SenderInitials
-                                </span>
-                            }
-
-                            <div class="mail-message-sender">
-
-                                <span class="mail-message-sender-name">
-                                    @item.SenderFullName
-                                </span>
-
-                                <span class="mail-message-sender-email">
-                                    @item.SenderEmail
-                                </span>
-
-                            </div>
-
-                            <div class="mail-message-content">
-
-                                <span class="mail-message-subject">
-                                    @item.Subject
-                                </span>
-
-                                <span class="mail-message-preview">
-                                    — @item.Preview
-                                </span>
-
-                            </div>
-
-                            <time class="mail-message-date" datetime="@item.SendDate.ToString("O")">
-
-                                @if (item.SendDate.Date == DateTime.Today)
-                                {
-                                    @item.SendDate.ToString("HH:mm")
-                                }
-                                else if (item.SendDate.Date == DateTime.Today.AddDays(-1))
-                                {
-                                    <text>Dün</text>
-                                }
-                                else if (item.SendDate.Year == DateTime.Today.Year)
-                                {
-                                    @item.SendDate.ToString("dd MMM", trCulture)
-                                }
-                                else
-                                {
-                                    @item.SendDate.ToString("dd MMM yyyy", trCulture)
-                                }
-                            </time>
-                        </a>
-
-                        <form asp-controller="Message"
-                              asp-action="ToggleImportant"
-                              asp-route-id="@item.Id"
-                              asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
-                              method="post"
-                              class="mail-message-star-form">
-
-                            <button type="submit"
-                                    class="mail-message-star-button @(item.IsImportant ? "is-important" : "")"
-                                    title="@(item.IsImportant ? "Önemliden kaldır" : "Önemli olarak işaretle")">
-
-                                <span class="material-symbols-outlined">
-                                    star
-                                </span>
-                            </button>
-                        </form>
-                    </div>
+                    <partial name="_MessageRow" model="item" />
                 }
             </div>
         }
