@@ -181,7 +181,7 @@ namespace IdentiyMail.Web.Controllers
             }
             return View(message);
         }
-
+        
         public async Task<IActionResult> Sent()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -219,6 +219,90 @@ namespace IdentiyMail.Web.Controllers
             return View(message);
         }
 
+        #region Mesaj önemli durumunu değiştirme
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToogleImportant(int id, string? returnUrl)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user is null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var message = await _context.UserMessages
+                .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == user.Id);
+
+            if (message is null)
+            {
+                return NotFound();
+            }
+
+            message.IsImportant = !message.IsImportant;
+
+            await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+        #endregion
+
+        #region Önemli mesajları listeleme
+        public async Task<IActionResult> Important()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user is null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var messages = await _context.UserMessages
+                .AsNoTracking()
+                .Where(x => x.ReceiverId == user.Id && x.IsImportant)
+                .OrderByDescending(x => x.SendDate)
+                .Select(x => new
+                {
+                    x.Id,
+                    
+                    SenderFirstName = x.Sender.FirstName,
+                    SenderLastName = x.Sender.LastName,
+                    SenderEmail = x.Sender.Email,
+                    x.Sender.ProfileImageUrl,
+
+                    x.Subject,
+                    x.Body,
+                    x.SendDate,
+                    x.IsRead,
+                    x.IsImportant
+                })
+                .ToListAsync();
+
+            var model = messages
+                .Select(x => new InboxMessageViewModel
+                {
+                    Id = x.Id,
+                    SenderFullName = $"{x.SenderFirstName} {x.SenderLastName}".Trim(),
+                    SenderEmail = x.SenderEmail ?? string.Empty,
+                    SenderProfileImageUrl = x.ProfileImageUrl,
+                    SenderInitials = CreateInitials(x.SenderFirstName, x.SenderLastName),
+                    Subject = x.Subject,
+                    Preview = CreateMessagePreview(x.Body),
+                    SendDate = x.SendDate,
+                    IsRead = x.IsRead,
+                    IsImportant = x.IsImportant
+                })
+                .ToList();
+
+            return View(model);
+        }
+        #endregion
+
         #region Mesaj Listeleme Yardımcı Metotları
         private static string CreateInitials(string firstName, string lastName)
         {
@@ -240,7 +324,7 @@ namespace IdentiyMail.Web.Controllers
                 return "Mesaj içeriği bulunmuyor.";
             }
             
-            var normalizedBody = string.Join(" ", body.Split(new[] { ' ', '\r', '\n', 't'}, StringSplitOptions.RemoveEmptyEntries));
+            var normalizedBody = string.Join(" ", body.Split(new[] { ' ', '\r', '\n', '\t'}, StringSplitOptions.RemoveEmptyEntries));
 
             const int maxLength = 110;
 

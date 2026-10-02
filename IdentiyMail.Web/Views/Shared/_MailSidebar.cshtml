@@ -77,6 +77,17 @@
             <span>Gönderilenler</span>
 
         </a>
+
+        <a asp-controller="Message"
+            asp-action="Important"
+            class="mail-nav-item @GetActiveClass("Message", "Important")">
+            
+            <span class="material-symbols-outlined">
+                star
+            </span>
+
+            <span>Önemli</span>
+        </a>
     </nav>
     @* #endregion *@
 

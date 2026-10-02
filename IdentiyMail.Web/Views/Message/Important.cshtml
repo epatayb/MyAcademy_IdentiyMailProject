@@ -1,105 +1,51 @@
 ﻿@using System.Globalization
-@model InboxViewModel
+@model List<InboxMessageViewModel>
 
 @{
-    ViewData["Title"] = "Gelen Kutusu";
+    ViewData["Title"] = "Önemli";
     var trCulture = new CultureInfo("tr-TR");
 }
 
 <section class="mail-inbox-page">
     <div class="mail-inbox-panel">
-        @* #region Gelen kutusu başlık ve filtreler *@
+        @* #region Önemli mesajlar başlığı *@
         <div class="mail-inbox-header">
             <div class="mail-inbox-heading">
                 <div class="mail-inbox-title-row">
-                    <h1>Gelen Kutusu</h1>
+                    <h1>Önemli</h1>
 
-                    @if (Model.UnreadCount > 0)
-                    {
-                        <span class="mail-unread-summary">
-                            <span class="mail-unread-dot"></span>
-                            @Model.UnreadCount okunmamış mesaj
-                        </span>
-                    }
+                    <span class="mail-unread-summary">
+                        @Model.Count mesaj
+                    </span>
                 </div>
 
                 <span class="mail-inbox-total">
-                    Toplam @Model.TotalCount ileti
-                </span>
+                    Önemli olarak işaretlediğiniz mesajlar
+                </span>                
             </div>
-
-            <nav class="mail-inbox-filters" aria-label="Mesaj filtreleri">
-                <a asp-controller="Message"
-                   asp-action="Index"
-                   asp-route-status="all"
-                   class="mail-filter-tab @(Model.Status == "all" ? "is-active" : "")">
-                    Tümü
-                </a>
-
-                <a asp-controller="Message"
-                   asp-action="Index"
-                   asp-route-status="unread"
-                   class="mail-filter-tab @(Model.Status == "unread" ? "is-active" : "")">
-
-                    <span>Okunmamış</span>
-
-                    @if (Model.UnreadCount > 0)
-                    {
-                        <span class="mail-filter-count">
-                            @Model.UnreadCount
-                        </span>
-                    }
-                </a>
-
-                <a asp-controller="Message"
-                   asp-action="Index"
-                   asp-route-status="read"
-                   class="mail-filter-tab @(Model.Status == "read" ? "is-active" : "")">
-                    Okunmuş
-                </a>
-            </nav>
         </div>
         @* #endregion *@
 
-        @* #region Gelen kutusu mesaj listesi *@
-        @if (Model.Messages.Count == 0)
+        
+        @* #region Önemli mesaj listesi *@
+        @if (Model.Count == 0)
         {
             <div class="mail-empty-state">
-
                 <span class="material-symbols-outlined">
-                    inbox
+                    star
                 </span>
 
-                @if (Model.Status == "unread")
-                {
-                    <h2>Okunmamış mesajınız yok</h2>
+                <h2>Önemli mesajınız yok</h2>
 
-                    <p>
-                        Gelen kutunuzdaki tüm mesajları okumuşsunuz.
-                    </p>
-                }
-                else if (Model.Status == "read")
-                {
-                    <h2>Okunmuş mesajınız yok</h2>
-
-                    <p>
-                        Okuduğunuz mesajlar burada görüntülenecek.
-                    </p>
-                }
-                else
-                {
-                    <h2>Gelen kutunuz boş</h2>
-
-                    <p>
-                        Yeni mesajlar geldiğinde burada görüntülenecek.
-                    </p>
-                }
+                <p>
+                    Yıldız eklediğiniz mesajlar burada görüntülenecek.
+                </p>
             </div>
         }
         else
         {
             <div class="mail-message-list">
-                @foreach (var item in Model.Messages)
+                @foreach (var item in Model)
                 {
                     <div class="mail-message-row-wrapper">
 
@@ -124,7 +70,6 @@
                             }
 
                             <div class="mail-message-sender">
-
                                 <span class="mail-message-sender-name">
                                     @item.SenderFullName
                                 </span>
@@ -132,11 +77,9 @@
                                 <span class="mail-message-sender-email">
                                     @item.SenderEmail
                                 </span>
-
                             </div>
 
                             <div class="mail-message-content">
-
                                 <span class="mail-message-subject">
                                     @item.Subject
                                 </span>
@@ -144,11 +87,9 @@
                                 <span class="mail-message-preview">
                                     — @item.Preview
                                 </span>
-
                             </div>
 
-                            <time class="mail-message-date" datetime="@item.SendDate.ToString("O")">
-
+                            <time class="mail-message-date">
                                 @if (item.SendDate.Date == DateTime.Today)
                                 {
                                     @item.SendDate.ToString("HH:mm")
@@ -176,8 +117,8 @@
                               class="mail-message-star-form">
 
                             <button type="submit"
-                                    class="mail-message-star-button @(item.IsImportant ? "is-important" : "")"
-                                    title="@(item.IsImportant ? "Önemliden kaldır" : "Önemli olarak işaretle")">
+                                    class="mail-message-star-button is-important"
+                                    title="Önemliden kaldır">
 
                                 <span class="material-symbols-outlined">
                                     star
@@ -188,5 +129,6 @@
                 }
             </div>
         }
+        @* #endregion *@
     </div>
 </section>
