@@ -47,7 +47,7 @@
             </span>
         </div>
 
-        <time class="mail-message-date">
+        <time class="mail-message-date" datetime="@Model.SendDate.ToString("O")">
             @if (Model.SendDate.Date == DateTime.Today)
             {
                 @Model.SendDate.ToString("HH:mm")
@@ -83,4 +83,16 @@
             </span>
         </button>
     </form>
+
+    <form asp-controller="Message"
+          asp-action="MoveToTrash"
+          asp-route-id="@Model.Id"
+          asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
+          method="post"
+          class="mail-message-trash-form">
+          
+          <button type="submit" class="mail-message-trash-button" title="Çöp kutusuna taşı">
+              <span class="material-symbols-outlined">delete</span>
+          </button>
+      </form>
 </div>

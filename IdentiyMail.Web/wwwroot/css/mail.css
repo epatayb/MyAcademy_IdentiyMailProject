@@ -901,3 +901,247 @@ body {
 }
 
 /* #endregion */
+
+/* #region Çöp kutusu */
+
+.mail-trash-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.mail-trash-row {
+    min-height: 66px;
+    padding: 10px 16px;
+    display: grid;
+    grid-template-columns: 34px 76px 170px minmax(0, 1fr) 80px 105px;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #eef1f5;
+    background: var(--mail-surface);
+}
+
+    .mail-trash-row:last-child {
+        border-bottom: 0;
+    }
+
+    .mail-trash-row:hover {
+        background: #f8f9fc;
+    }
+
+
+/* #region Mesaj yönü */
+
+.mail-trash-direction {
+    width: fit-content;
+    padding: 3px 7px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+    .mail-trash-direction.is-incoming {
+        background: #eef3ff;
+        color: var(--mail-primary);
+    }
+
+    .mail-trash-direction.is-outgoing {
+        background: #f2f4f7;
+        color: #475467;
+    }
+
+/* #endregion */
+
+
+/* #region Karşı taraf bilgisi */
+
+.mail-trash-contact {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* #endregion */
+
+
+/* #region Geri yükleme */
+
+.mail-trash-restore-form {
+    margin: 0;
+    justify-self: end;
+}
+
+.mail-trash-restore-button {
+    height: 32px;
+    padding: 0 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 1px solid var(--mail-border);
+    border-radius: var(--mail-radius-md);
+    background: var(--mail-surface);
+    color: var(--mail-text-muted);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+
+    .mail-trash-restore-button:hover {
+        background: #eef3ff;
+        border-color: #c7d7ff;
+        color: var(--mail-primary);
+    }
+
+    .mail-trash-restore-button .material-symbols-outlined {
+        font-size: 17px;
+    }
+
+/* #endregion */
+
+/* #endregion */
+
+
+/* #region Çöp kutusu tablet */
+
+@media (max-width: 1000px) {
+
+    .mail-trash-row {
+        grid-template-columns: 34px 70px 130px minmax(0, 1fr) 68px 36px;
+    }
+
+    .mail-trash-restore-button {
+        width: 32px;
+        padding: 0;
+    }
+
+        .mail-trash-restore-button > span:last-child {
+            display: none;
+        }
+}
+
+/* #endregion */
+
+
+/* #region Çöp kutusu mobil */
+
+@media (max-width: 768px) {
+
+    .mail-trash-row {
+        min-height: 88px;
+        padding: 10px;
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        grid-template-rows: auto auto auto;
+        gap: 4px 9px;
+    }
+
+        .mail-trash-row .mail-message-avatar {
+            grid-column: 1;
+            grid-row: 1 / 4;
+            align-self: center;
+        }
+
+    .mail-trash-contact {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .mail-trash-direction {
+        grid-column: 3;
+        grid-row: 1;
+    }
+
+    .mail-trash-row .mail-message-content {
+        grid-column: 2 / 4;
+        grid-row: 2;
+        padding-right: 36px;
+    }
+
+    .mail-trash-row .mail-message-date {
+        grid-column: 2;
+        grid-row: 3;
+        justify-self: start;
+    }
+
+    .mail-trash-restore-form {
+        grid-column: 3;
+        grid-row: 3;
+        align-self: end;
+    }
+}
+
+/* #endregion */
+
+/* #region Mesaj satırı çöp kutusu aksiyonu */
+
+.mail-message-trash-form {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    margin: 0;
+    transform: translateY(-50%);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 5;
+    transition: opacity .15s ease;
+}
+
+.mail-message-row-wrapper:hover
+.mail-message-trash-form {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.mail-message-row-wrapper:hover
+.mail-message-date {
+    opacity: 0;
+}
+
+.mail-message-trash-button {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #98a2b3;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+    .mail-message-trash-button:hover {
+        background: var(--mail-danger-soft);
+        color: var(--mail-danger);
+    }
+
+    .mail-message-trash-button
+    .material-symbols-outlined {
+        font-size: 18px;
+    }
+
+/* #endregion */
+
+@media (max-width: 768px) {
+
+    .mail-message-trash-form {
+        top: auto;
+        right: 7px;
+        bottom: 7px;
+        transform: none;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .mail-message-row-wrapper:hover
+    .mail-message-date {
+        opacity: 1;
+    }
+
+    .mail-message-content {
+        padding-right: 28px;
+    }
+}

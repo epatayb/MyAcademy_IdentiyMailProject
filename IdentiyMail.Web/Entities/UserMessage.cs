@@ -13,5 +13,8 @@
         public int SenderId { get; set; }
         public AppUser Receiver { get; set; } = null!;
         public int ReceiverId { get; set; }
+
+        public bool IsDeletedBySender { get; set; }
+        public bool IsDeletedByReceiver { get; set; }
     }
 }

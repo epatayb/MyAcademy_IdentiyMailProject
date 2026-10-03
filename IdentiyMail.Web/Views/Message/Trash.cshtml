@@ -1,0 +1,125 @@
+﻿@using System.Globalization
+@model List<TrashMessageViewModel>
+
+@{
+    ViewData["Title"] = "Çöp kutusu";
+    var trCulture = new CultureInfo("tr-TR");
+}
+
+<section class="mail-inbox-page">
+    <div class="mail-inbox-panel">
+        <div class="mail-inbox-header">
+            <div class="mail-inbox-heading">
+                
+                <div class="mail-inbox-title-row">
+                    <h1>Çöp Kutusu</h1>
+                    
+                    @if(Model.Count > 0)
+                    {
+                        <span class="mail-unread-summary">
+                            @Model.Count mesaj
+                        </span>
+                    }
+                </div>
+
+                <span class="mail-inbox-total">
+                    Çöpe taşıdığınız mesajlar
+                </span>
+            
+            </div>
+        </div>
+
+        @if(Model.Count == 0)
+        {
+            <div class="mail-empty-state">
+                <span class="material-symbols-outlined">
+                    delete
+                </span>
+
+                <h2>Çöp kutunuz boş</h2>
+
+                <p>Çöpe taşıdığınız mesajlar burada görüntülenecek.</p>
+            </div>
+        }
+        else
+        {
+            <div class="mail-trash-list">
+                @foreach(var item in Model)
+                {
+                    <div class="mail-trash-row">
+                        @if(!string.IsNullOrWhiteSpace(item.ContactProfileImageUrl))
+                        {
+                            <img src="@item.ContactProfileImageUrl"
+                                 alt="@item.ContactFullName"
+                            class="mail-message-avatar" />
+                        }
+                        else
+                        {
+                            <span class="mail-message-avatar mail-message-initials">
+                                @item.ContactInitials
+                            </span>
+                        }
+
+                        <span class="mail-trash-direction @(item.IsIncoming ? "is-incoming" : "is-outgoing")">
+                            @(item.IsIncoming ? "Gelen" : "Gönderilen")
+                        </span>
+
+                        <div class="mail-trash-contact">
+                            <span class="mail-message-sender-name">
+                                @item.ContactFullName
+                            </span>
+
+                            <span class="mail-message-sender-email">
+                                @item.ContactEmail
+                            </span>
+                        </div>
+
+                        <div class="mail-message-content">
+                            <span class="mail-message-subject">
+                                @item.Subject
+                            </span>
+
+                            <span class="mail-message-preview">
+                                - @item.Preview
+                            </span>
+                        </div>
+
+                        <time class="mail-message-date" datetime="@item.SendDate.ToString("O")">
+                            @if(item.SendDate.Date == DateTime.Today)
+                            {
+                                @item.SendDate.ToString("HH:mm")
+                            }
+                            else if (item.SendDate.Date == DateTime.Today.AddDays(-1))
+                            {
+                                <text>Dün</text>
+                            }
+                            else if (item.SendDate.Year == DateTime.Today.Year)
+                            {
+                                @item.SendDate.ToString("dd MMM", trCulture)
+                            }
+                            else
+                            {
+                                @item.SendDate.ToString("dd MMM yyyy", trCulture)
+                            }
+                        </time>
+
+                        <form asp-controller="Message"
+                              asp-action="RestoreFromTrash"
+                              asp-route-id="@item.Id"
+                              method="post"
+                              class="mail-trash-restore-from">
+
+                              <button type="submit" class="mail-trash-restore-button" title="Mesajı geri yükle">
+                                  <span class="material-symbols-outlined">
+                                      restore_from_trash
+                                  </span>
+
+                                  <span>Geri Yükle</span>
+                              </button>
+                          </form>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>

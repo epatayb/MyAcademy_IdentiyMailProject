@@ -88,6 +88,17 @@
 
             <span>Önemli</span>
         </a>
+
+        <a asp-controller="Message"
+            asp-action="Trash"
+            class="mail-nav-item @GetActiveClass("Message", "Trash")">
+            
+            <span class="material-symbols-outlined">
+                delete
+            </span>
+
+            <span>Çöp kutusu</span>
+        </a>
     </nav>
     @* #endregion *@
 

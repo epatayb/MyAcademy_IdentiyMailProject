@@ -21,8 +21,7 @@ namespace IdentiyMail.Web.Controllers
             #region Gelen kutusu temel sorgusu
 
             var inboxQuery = _context.UserMessages
-                .AsNoTracking()
-                .Where(x => x.ReceiverId == userId);
+                .Where(x => x.ReceiverId == userId && !x.IsDeletedByReceiver);
 
             var totalCount = await inboxQuery.CountAsync();
 
@@ -109,13 +108,14 @@ namespace IdentiyMail.Web.Controllers
             return RedirectToAction(nameof(Sent));
         }
 
+        [HttpGet]
         public async Task<IActionResult> MailDetail(int id)
         {
             var userId = GetCurrentUserId();
 
             var message = await _context.UserMessages
                 .Include(x => x.Sender)
-                .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == userId);
+                .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == userId && !x.IsDeletedByReceiver);
 
             if (message is null)
             {
@@ -129,7 +129,8 @@ namespace IdentiyMail.Web.Controllers
             }
             return View(message);
         }
-        
+
+        [HttpGet]
         public async Task<IActionResult> Sent()
         {
             var userId = GetCurrentUserId();
@@ -137,7 +138,7 @@ namespace IdentiyMail.Web.Controllers
             var messages = await _context.UserMessages
                 .AsNoTracking()
                 .Include(x => x.Receiver)
-                .Where(x => x.SenderId == userId)
+                .Where(x => x.SenderId == userId && !x.IsDeletedBySender)
                 .OrderByDescending(x => x.SendDate)
                 .ToListAsync();
 
@@ -152,7 +153,7 @@ namespace IdentiyMail.Web.Controllers
             var message = await _context.UserMessages
                 .AsNoTracking()
                 .Include(x => x.Receiver)
-                .FirstOrDefaultAsync(x => x.Id == id && x.SenderId == userId);
+                .FirstOrDefaultAsync(x => x.Id == id && x.SenderId == userId && !x.IsDeletedBySender);
 
             if (message is null)
             {
@@ -162,6 +163,82 @@ namespace IdentiyMail.Web.Controllers
             return View(message);
         }
 
+        #region Çöp kutusundaki mesajları listeleme
+        [HttpGet]
+        public async Task<IActionResult> Trash()
+        {
+            var userId = GetCurrentUserId();
+
+            var messages = await _context.UserMessages
+                .AsNoTracking()
+                .Where(x => (x.ReceiverId == userId && x.IsDeletedByReceiver) ||
+                            (x.SenderId == userId && x.IsDeletedBySender))
+                .OrderByDescending(x => x.SendDate)
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Subject,
+                    x.Body,
+                    x.SendDate,
+                    x.IsRead,
+
+                    x.SenderId,
+                    x.ReceiverId,
+
+                    SenderFirstName = x.Sender.FirstName,
+                    SenderLastName = x.Sender.LastName,
+                    SenderEmail = x.Sender.Email,
+                    SenderProfileImageUrl = x.Sender.ProfileImageUrl,
+
+                    ReceiverFirstName = x.Receiver.FirstName,
+                    ReceiverLastName = x.Receiver.LastName,
+                    ReceiverEmail = x.Receiver.Email,
+                    ReceiverProfileImageUrl = x.Receiver.ProfileImageUrl,
+                })
+                .ToListAsync();
+
+            var model = messages
+                .Select(x =>
+                {
+                    var isIncoming = x.ReceiverId == userId;
+
+                    var firstName = isIncoming
+                        ? x.SenderFirstName
+                        : x.ReceiverFirstName;
+
+                    var lastName = isIncoming
+                        ? x.SenderLastName
+                        : x.ReceiverLastName;
+
+                    return new TrashMessageViewModel
+                    {
+                        Id = x.Id,
+
+                        ContactFullName = $"{firstName} {lastName}".Trim(),
+
+                        ContactEmail = isIncoming
+                            ? x.SenderEmail ?? string.Empty
+                            : x.ReceiverEmail ?? string.Empty,
+
+                        ContactProfileImageUrl = isIncoming
+                            ? x.SenderProfileImageUrl
+                            : x.ReceiverProfileImageUrl,
+
+                        ContactInitials = CreateInitials(firstName, lastName),
+
+                        Subject = x.Subject,
+                        Preview = CreateMessagePreview(x.Body),
+                        SendDate = x.SendDate,
+                        IsIncoming = isIncoming,
+                        IsRead = x.IsRead,
+                    };
+                })
+                .ToList();
+
+            return View(model);
+        }
+        #endregion
+
         #region Mesaj önemli durumunu değiştirme
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -170,7 +247,7 @@ namespace IdentiyMail.Web.Controllers
             var userId = GetCurrentUserId();
 
             var message = await _context.UserMessages
-                .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == userId);
+                .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == userId && !x.IsDeletedByReceiver);
 
             if (message is null)
             {
@@ -196,11 +273,77 @@ namespace IdentiyMail.Web.Controllers
             var userId = GetCurrentUserId();
 
             var query = _context.UserMessages
-                .Where(x => x.ReceiverId == userId && x.IsImportant);
+                .Where(x => x.ReceiverId == userId && x.IsImportant && !x.IsDeletedByReceiver);
 
             var model = await GetInboxMessageItemsAsync(query);
 
             return View(model);
+        }
+        #endregion
+
+        #region Mesajı çöp kutusuna taşıma
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MoveToTrash(int id, string? returnUrl)
+        {
+            var userId = GetCurrentUserId();
+
+            var message = await _context.UserMessages
+                .FirstOrDefaultAsync(x => x.Id == id && (x.SenderId == userId || x.ReceiverId == userId));
+
+            if (message is null) { return NotFound(); }
+
+            if (message.ReceiverId == userId)
+            {
+                message.IsDeletedByReceiver = true;
+            }
+
+            if (message.SenderId == userId)
+            {
+                message.IsDeletedBySender = true;
+            }
+
+            await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+        #endregion
+
+        #region Mesajı çöp kutusundan geri yükleme
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RestoreFromTrash(int id)
+        {
+            var userId = GetCurrentUserId();
+
+            var message = await _context.UserMessages
+                .FirstOrDefaultAsync(x => x.Id == id &&
+                    ((x.ReceiverId == userId && x.IsDeletedByReceiver) ||
+                    (x.SenderId == userId && x.IsDeletedBySender)));
+
+            if (message is null)
+            {
+                return NotFound();
+            }
+
+            if (message.ReceiverId == userId)
+            {
+                message.IsDeletedByReceiver = false;
+            }
+
+            if (message.SenderId == userId)
+            {
+                message.IsDeletedBySender = false;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Trash));
         }
         #endregion
 
