@@ -1,84 +1,146 @@
-﻿@model List<UserMessage>
+﻿@using System.Globalization
+@model List<SentMessageViewModel>
 
 @{
     ViewData["Title"] = "Gönderilenler";
+    var trCulture = new CultureInfo("tr-TR");
 }
 
-<h3>Gönderilen Mesajlar</h3>
+<section class="mail-inbox-page">
+    <div class="mail-inbox-panel">
+        <div class="mail-inbox-header">
+            <div class="mail-inbox-heading">
+                <div class="mail-inbox-title-row">
+                    <h1>Gönderilenler</h1>
 
-@if (TempData["MessageSuccess"] is not null)
-{
-    <div class="alert alert-success">
-        @TempData["MessageSuccess"]
-    </div>
-}
+                    @if (Model.Count > 0)
+                    {
+                        <span class="mail-unread-summary">
+                            @Model.Count mesaj
+                        </span>
+                    }
+                </div>
 
-@if (Model.Count == 0)
-{
-    <div class="alert alert-light border">
-        Henüz gönderilmiş bir mesajınız bulunmuyor.
-    </div>
-}
-else
-{
-    <table class="table table-bordered table-hover">
+                <span class="mail-inbox-total">
+                    Gönderdiğiniz mesajlar
+                </span>
+            </div>
+        </div>
 
-        <thead>
-            <tr>
-                <th>Alıcı Ad Soyad</th>
-                <th>Email</th>
-                <th>Konu</th>
-                <th>Tarih</th>
-                <th class="text-end">İşlemler</th>
-            </tr>
-        </thead>
+        @if (TempData["MessageSuccess"] is not null)
+        {
+            <div class="mail-success-alert">
+                @TempData["MessageSuccess"]
+            </div>
+        }
 
-        <tbody>
+        @if (Model.Count == 0)
+        {
+            <div class="mail-empty-state">
+                <span class="material-symbols-outlined">
+                    send
+                </span>
 
-            @foreach (var item in Model)
-            {
-                <tr>
+                <h2>Gönderilmiş mesajınız yok</h2>
 
-                    <td>
-                        @item.Receiver.FirstName
-                        @item.Receiver.LastName
-                    </td>
-
-                    <td>
-                        @item.Receiver.Email
-                    </td>
-
-                    <td>
-                        @item.Subject
-                    </td>
-
-                    <td>
-                        @item.SendDate.ToString("dd.MM.yyyy HH:mm")
-                    </td>
-
-                    <td class="text-end">
-
+                <p>Gönderdiğiniz mesajlar burada görüntülenecek.</p>
+            </div>
+        }
+        else
+        {
+            <div class="mail-message-list">
+                @foreach (var item in Model)
+                {
+                    <div class="mail-message-row-wrapper">
                         <a asp-controller="Message"
                            asp-action="SentMailDetail"
                            asp-route-id="@item.Id"
-                           class="btn btn-outline-info">
+                           class="mail-sent-row">
 
-                            Maili Görüntüle
+                            @if (!string.IsNullOrWhiteSpace(item.ReceiverProfileImageUrl))
+                            {
+                                <img src="@item.ReceiverProfileImageUrl"
+                                     alt="@item.ReceiverFullName"
+                                     class="mail-message-avatar" />
+                            }
+                            else
+                            {
+                                <span class="mail-message-avatar mail-message-initials">
+                                    @item.ReceiverInitials
+                                </span>
+                            }
 
+                            <div class="mail-message-sender">
+                                <span class="mail-message-sender-name">
+                                    @item.ReceiverFullName
+                                </span>
+
+                                <span class="mail-message-sender-email">
+                                    @item.ReceiverEmail
+                                </span>
+                            </div>
+
+                            <div class="mail-message-content">
+                                <span class="mail-message-subject">
+                                    @item.Subject
+                                </span>
+
+                                <span class="mail-message-preview">
+                                    - @item.Preview
+                                </span>
+                            </div>
+
+                            <div class="mail-sent-meta">
+                                <span class="mail-read-status @(item.IsRead ? "is-read" : "")">
+                                    <span class="material-symbols-outlined">
+                                        @(item.IsRead ? "done_all" : "done")
+                                    </span>
+
+                                    @(item.IsRead ? "Okundu" : "Okunmadı")
+                                </span>
+
+                                <time class="mail-message-date" datetime="@item.SendDate.ToString("O")">
+                                    @if (item.SendDate.Date == DateTime.Today)
+                                    {
+                                        @item.SendDate.ToString("HH:mm")
+                                    }
+                                    else if (item.SendDate.Date == DateTime.Today.AddDays(-1))
+                                    {
+                                        <text>Dün</text>
+                                    }
+                                    else if (item.SendDate.Year == DateTime.Today.Year)
+                                    {
+                                        @item.SendDate.ToString("dd MMM", trCulture)
+                                    }
+                                    else
+                                    {
+                                        @item.SendDate.ToString("dd MMM yyyy",trCulture)
+                                    }
+                                </time>
+                            </div>
                         </a>
 
-                    </td>
+                        <form asp-controller="Message"
+                              asp-action="MoveToTrash"
+                              asp-route-id="@item.Id"
+                              asp-route-side="sender"
+                              asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
+                              method="post"
+                              class="mail-message-trash-form">
 
-                </tr>
-            }
+                            <button type="submit"
+                                    class="mail-message-trash-button"
+                                    title="Çöp kutusuna taşı">
 
-        </tbody>
+                                <span class="material-symbols-outlined">
+                                    delete
+                                </span>
 
-    </table>
-}
-
-<a asp-controller="Message"
-   asp-action="SendMail"
-   class="btn btn-dark">
-    Yeni Mail Gönder
-</a>
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>

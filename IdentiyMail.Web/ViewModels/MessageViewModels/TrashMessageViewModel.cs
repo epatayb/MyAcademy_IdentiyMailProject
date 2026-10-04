@@ -18,6 +18,8 @@
 
         public DateTime SendDate { get; set; }
 
+        public DateTime? DeletedAt { get; set; }
+
         // true = gelen mesaj - false = gönderilen mesaj
         public bool IsIncoming { get; set; }
 

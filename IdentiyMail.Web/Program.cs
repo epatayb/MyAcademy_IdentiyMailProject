@@ -41,6 +41,8 @@ builder.Services.Configure<MailSettings>(
 
 builder.Services.AddScoped<IMailService, SmtpMailService>();
 
+builder.Services.AddHostedService<TrashCleanupBackgroundService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

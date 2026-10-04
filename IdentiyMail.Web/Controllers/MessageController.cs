@@ -137,12 +137,38 @@ namespace IdentiyMail.Web.Controllers
 
             var messages = await _context.UserMessages
                 .AsNoTracking()
-                .Include(x => x.Receiver)
-                .Where(x => x.SenderId == userId && !x.IsDeletedBySender)
+                .Where(x => x.SenderId == userId && !x.IsDeletedBySender && !x.IsPermanetlyDeletedBySender)
                 .OrderByDescending(x => x.SendDate)
+                .Select(x => new
+                {
+                    x.Id,
+                    ReceiverFirstName = x.Receiver.FirstName,
+                    ReceiverLastName = x.Receiver.LastName,
+                    ReceiverEmail = x.Receiver.Email,
+                    x.Receiver.ProfileImageUrl,
+                    x.Subject,
+                    x.Body,
+                    x.SendDate,
+                    x.IsRead
+                })
                 .ToListAsync();
 
-            return View(messages);
+            var model = messages
+                .Select(x => new SentMessageViewModel
+                {
+                    Id = x.Id,
+                    ReceiverFullName = $"{x.ReceiverFirstName} {x.ReceiverLastName}".Trim(),
+                    ReceiverEmail = x.ReceiverEmail ?? string.Empty,
+                    ReceiverProfileImageUrl = x.ProfileImageUrl,
+                    ReceiverInitials = CreateInitials(x.ReceiverFirstName, x.ReceiverLastName),
+                    Subject = x.Subject,
+                    Preview = CreateMessagePreview(x.Body),
+                    SendDate = x.SendDate,
+                    IsRead = x.IsRead,
+                })
+                .ToList();
+
+            return View(model);
         }
 
         [HttpGet]
@@ -284,27 +310,46 @@ namespace IdentiyMail.Web.Controllers
         #region Mesajı çöp kutusuna taşıma
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> MoveToTrash(int id, string? returnUrl)
+        public async Task<IActionResult> MoveToTrash(int id, string side, string? returnUrl)
         {
             var userId = GetCurrentUserId();
 
             var message = await _context.UserMessages
-                .FirstOrDefaultAsync(x => x.Id == id && (x.SenderId == userId || x.ReceiverId == userId));
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (message is null) { return NotFound(); }
 
-            if (message.ReceiverId == userId)
-            {
-                message.IsDeletedByReceiver = true;
-            }
+            var deletedAt = DateTime.Now;
 
-            if (message.SenderId == userId)
+            if (side == "receiver")
             {
-                message.IsDeletedBySender = true;
+                if (message.ReceiverId != userId || message.IsPermanetlyDeletedByReceiver)
+                { return NotFound(); }
+
+                if (!message.IsDeletedByReceiver)
+                {
+                    message.IsDeletedByReceiver = true;
+                    message.DeletedByReceiverAt = deletedAt;
+                }
+            }
+            else if (side == "sender")
+            {
+                if (message.SenderId != userId || message.IsPermanetlyDeletedBySender)
+                { return NotFound(); }
+
+                if (!message.IsDeletedBySender)
+                {
+                    message.IsDeletedBySender = true;
+                    message.DeletedBySenderAt = deletedAt;
+                }
+            }
+            else
+            {
+                return BadRequest();
             }
 
             await _context.SaveChangesAsync();
-
+            
             if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
                 return LocalRedirect(returnUrl);
@@ -317,28 +362,78 @@ namespace IdentiyMail.Web.Controllers
         #region Mesajı çöp kutusundan geri yükleme
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RestoreFromTrash(int id)
+        public async Task<IActionResult> RestoreFromTrash(int id, string side)
         {
             var userId = GetCurrentUserId();
 
             var message = await _context.UserMessages
-                .FirstOrDefaultAsync(x => x.Id == id &&
-                    ((x.ReceiverId == userId && x.IsDeletedByReceiver) ||
-                    (x.SenderId == userId && x.IsDeletedBySender)));
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (message is null)
             {
                 return NotFound();
             }
 
-            if (message.ReceiverId == userId)
+            if (side == "receiver")
             {
+                if (message.ReceiverId != userId || !message.IsDeletedByReceiver || message.IsPermanetlyDeletedByReceiver)
+                { return NotFound(); }
+
                 message.IsDeletedByReceiver = false;
+                message.DeletedByReceiverAt = null;
+            }
+            else if (side == "sender")
+            {
+                if (message.SenderId != userId || !message.IsDeletedBySender || message.IsPermanetlyDeletedBySender)
+                { return NotFound(); }
+
+                message.IsDeletedBySender = false;
+                message.DeletedBySenderAt = null;
+            }
+            else
+            {
+                return BadRequest();
             }
 
-            if (message.SenderId == userId)
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Trash));
+        }
+        #endregion
+
+        #region Mesajı çöp kutusundan silme
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteFromTrash(int id, string side)
+        {
+            var userId = GetCurrentUserId();
+
+            var message = await _context.UserMessages
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (message is null) { return NotFound(); }
+
+            if (side == "receiver")
             {
-                message.IsDeletedBySender = false;
+                if (message.ReceiverId != userId || !message.IsDeletedByReceiver || message.IsPermanetlyDeletedByReceiver)
+                {
+                    return NotFound();
+                }
+
+                message.IsPermanetlyDeletedByReceiver = true;
+            }
+            else if (side == "sender")
+            {
+                if (message.SenderId != userId || !message.IsDeletedBySender || message.IsPermanetlyDeletedBySender)
+                {
+                    return NotFound();
+                }
+
+                message.IsPermanetlyDeletedBySender = true;
+            }
+            else
+            {
+                return BadRequest();
             }
 
             await _context.SaveChangesAsync();

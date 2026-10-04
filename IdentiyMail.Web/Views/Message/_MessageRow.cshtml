@@ -87,6 +87,7 @@
     <form asp-controller="Message"
           asp-action="MoveToTrash"
           asp-route-id="@Model.Id"
+          asp-route-side="receiver"
           asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
           method="post"
           class="mail-message-trash-form">

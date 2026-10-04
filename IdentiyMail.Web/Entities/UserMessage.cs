@@ -15,6 +15,11 @@
         public int ReceiverId { get; set; }
 
         public bool IsDeletedBySender { get; set; }
+        public DateTime? DeletedBySenderAt { get; set; }
+        public bool IsPermanetlyDeletedBySender { get; set; }
+
         public bool IsDeletedByReceiver { get; set; }
+        public DateTime? DeletedByReceiverAt { get; set; }
+        public bool IsPermanetlyDeletedByReceiver { get; set; }
     }
 }

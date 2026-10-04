@@ -10,11 +10,11 @@
     <div class="mail-inbox-panel">
         <div class="mail-inbox-header">
             <div class="mail-inbox-heading">
-                
+
                 <div class="mail-inbox-title-row">
                     <h1>Çöp Kutusu</h1>
-                    
-                    @if(Model.Count > 0)
+
+                    @if (Model.Count > 0)
                     {
                         <span class="mail-unread-summary">
                             @Model.Count mesaj
@@ -23,13 +23,13 @@
                 </div>
 
                 <span class="mail-inbox-total">
-                    Çöpe taşıdığınız mesajlar
+                    Çöpe taşıdığınız mesajlar 30 gün sonra otomatik olarak silinir.
                 </span>
-            
+
             </div>
         </div>
 
-        @if(Model.Count == 0)
+        @if (Model.Count == 0)
         {
             <div class="mail-empty-state">
                 <span class="material-symbols-outlined">
@@ -44,14 +44,14 @@
         else
         {
             <div class="mail-trash-list">
-                @foreach(var item in Model)
+                @foreach (var item in Model)
                 {
                     <div class="mail-trash-row">
-                        @if(!string.IsNullOrWhiteSpace(item.ContactProfileImageUrl))
+                        @if (!string.IsNullOrWhiteSpace(item.ContactProfileImageUrl))
                         {
                             <img src="@item.ContactProfileImageUrl"
                                  alt="@item.ContactFullName"
-                            class="mail-message-avatar" />
+                                 class="mail-message-avatar" />
                         }
                         else
                         {
@@ -84,39 +84,58 @@
                             </span>
                         </div>
 
-                        <time class="mail-message-date" datetime="@item.SendDate.ToString("O")">
-                            @if(item.SendDate.Date == DateTime.Today)
-                            {
-                                @item.SendDate.ToString("HH:mm")
-                            }
-                            else if (item.SendDate.Date == DateTime.Today.AddDays(-1))
-                            {
-                                <text>Dün</text>
-                            }
-                            else if (item.SendDate.Year == DateTime.Today.Year)
-                            {
-                                @item.SendDate.ToString("dd MMM", trCulture)
-                            }
-                            else
-                            {
-                                @item.SendDate.ToString("dd MMM yyyy", trCulture)
-                            }
-                        </time>
+                        <div class="mail-trash-actions">
 
-                        <form asp-controller="Message"
-                              asp-action="RestoreFromTrash"
-                              asp-route-id="@item.Id"
-                              method="post"
-                              class="mail-trash-restore-from">
+                            <time class="mail-message-date" datetime="@item.SendDate.ToString("O")">
+                                @if (item.SendDate.Date == DateTime.Today)
+                                {
+                                    @item.SendDate.ToString("HH:mm")
+                                }
+                                else if (item.SendDate.Date == DateTime.Today.AddDays(-1))
+                                {
+                                    <text>Dün</text>
+                                }
+                                else if (item.SendDate.Year == DateTime.Today.Year)
+                                {
+                                    @item.SendDate.ToString("dd MMM", trCulture)
+                                }
+                                else
+                                {
+                                    @item.SendDate.ToString("dd MMM yyyy", trCulture)
+                                }
+                            </time>
 
-                              <button type="submit" class="mail-trash-restore-button" title="Mesajı geri yükle">
-                                  <span class="material-symbols-outlined">
-                                      restore_from_trash
-                                  </span>
+                            <div class="mail-trash-action-buttons">
 
-                                  <span>Geri Yükle</span>
-                              </button>
-                          </form>
+                                <form asp-controller="Message"
+                                      asp-action="RestoreFromTrash"
+                                      asp-route-id="@item.Id"
+                                      asp-route-side="@(item.IsIncoming ? "receiver" : "sender")"
+                                      method="post"
+                                      class="mail-trash-restore-form">
+
+                                    <button type="submit" class="mail-trash-restore-button" title="Mesajı geri yükle">
+                                        <span class="material-symbols-outlined">
+                                            restore_from_trash
+                                        </span>
+
+                                        <span>Geri Yükle</span>
+                                    </button>
+                                </form>
+
+                                <form asp-controller="Message"
+                                      asp-action="DeleteFromTrash"
+                                      asp-route-id="@item.Id"
+                                      asp-route-side="@(item.IsIncoming ? "receiver" : "sender")"
+                                      method="post">
+
+                                    <button type="submit" class="mail-trash-delete-button" title="Mesajı Sil">
+                                        <span class="material-symbols-outlined">delete_forever</span>
+                                        <span>Sil</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 }
             </div>
