@@ -158,10 +158,10 @@ namespace IdentiyMail.Web.Migrations
                     b.Property<bool>("IsImportant")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsPermanetlyDeletedByReceiver")
+                    b.Property<bool>("IsPermanentlyDeletedByReceiver")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsPermanetlyDeletedBySender")
+                    b.Property<bool>("IsPermanentlyDeletedBySender")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsRead")

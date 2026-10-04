@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IdentiyMail.Web.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261004001535_AddMessageTrashRetentionFields")]
-    partial class AddMessageTrashRetentionFields
+    [Migration("20261004030034_FixPermanentDeleteColumnNames")]
+    partial class FixPermanentDeleteColumnNames
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -910,7 +910,14 @@ body {
 }
 
 .mail-trash-row {
+    min-height: 76px;
+    padding: 10px 16px;
+    display: grid;
     grid-template-columns: 34px 76px 170px minmax(0, 1fr) 180px;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #eef1f5;
+    background: var(--mail-surface);
 }
 
     .mail-trash-row:last-child {
@@ -1001,15 +1008,17 @@ body {
 @media (max-width: 1000px) {
 
     .mail-trash-row {
-        grid-template-columns: 34px 70px 130px minmax(0, 1fr) 68px 36px;
+        grid-template-columns: 34px 68px 130px minmax(0, 1fr) 150px;
     }
 
-    .mail-trash-restore-button {
+    .mail-trash-restore-button,
+    .mail-trash-delete-button {
         width: 32px;
         padding: 0;
     }
 
-        .mail-trash-restore-button > span:last-child {
+        .mail-trash-restore-button > span:last-child,
+        .mail-trash-delete-button > span:last-child {
             display: none;
         }
 }
@@ -1022,11 +1031,11 @@ body {
 @media (max-width: 768px) {
 
     .mail-trash-row {
-        min-height: 88px;
+        min-height: 104px;
         padding: 10px;
         grid-template-columns: 34px minmax(0, 1fr) auto;
         grid-template-rows: auto auto auto;
-        gap: 4px 9px;
+        gap: 5px 9px;
     }
 
         .mail-trash-row .mail-message-avatar {
@@ -1048,19 +1057,17 @@ body {
     .mail-trash-row .mail-message-content {
         grid-column: 2 / 4;
         grid-row: 2;
-        padding-right: 36px;
+        padding-right: 0px;
     }
 
-    .mail-trash-row .mail-message-date {
-        grid-column: 2;
+    .mail-trash-actions {
+        grid-column: 2 / 4;
         grid-row: 3;
-        justify-self: start;
-    }
-
-    .mail-trash-restore-form {
-        grid-column: 3;
-        grid-row: 3;
-        align-self: end;
+        justify-self: stretch;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
     }
 }
 

@@ -24,14 +24,14 @@ namespace IdentiyMail.Web.Migrations
                 nullable: true);
 
             migrationBuilder.AddColumn<bool>(
-                name: "IsPermanetlyDeletedByReceiver",
+                name: "IsPermanentlyDeletedByReceiver",
                 table: "UserMessages",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<bool>(
-                name: "IsPermanetlyDeletedBySender",
+                name: "IsPermanentlyDeletedBySender",
                 table: "UserMessages",
                 type: "bit",
                 nullable: false,
@@ -50,11 +50,11 @@ namespace IdentiyMail.Web.Migrations
                 table: "UserMessages");
 
             migrationBuilder.DropColumn(
-                name: "IsPermanetlyDeletedByReceiver",
+                name: "IsPermanentlyDeletedByReceiver",
                 table: "UserMessages");
 
             migrationBuilder.DropColumn(
-                name: "IsPermanetlyDeletedBySender",
+                name: "IsPermanentlyDeletedBySender",
                 table: "UserMessages");
         }
     }

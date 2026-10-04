@@ -46,14 +46,14 @@ namespace IdentiyMail.Web.Services
                 .Where(x =>
                     (
                         x.IsDeletedBySender &&
-                        !x.IsPermanetlyDeletedBySender &&
+                        !x.IsPermanentlyDeletedBySender &&
                         x.DeletedBySenderAt.HasValue &&
                         x.DeletedBySenderAt.Value <= deleteBefore
                     )
                     ||
                     (
                         x.IsDeletedByReceiver &&
-                        !x.IsPermanetlyDeletedByReceiver &&
+                        !x.IsPermanentlyDeletedByReceiver &&
                         x.DeletedByReceiverAt.HasValue &&
                         x.DeletedByReceiverAt.Value <= deleteBefore
                     ))
@@ -61,14 +61,14 @@ namespace IdentiyMail.Web.Services
 
             foreach (var message in messages)
             {
-                if (message.IsDeletedBySender && !message.IsPermanetlyDeletedBySender && message.DeletedBySenderAt.HasValue && message.DeletedBySenderAt.Value <= deleteBefore)
+                if (message.IsDeletedBySender && !message.IsPermanentlyDeletedBySender && message.DeletedBySenderAt.HasValue && message.DeletedBySenderAt.Value <= deleteBefore)
                 {
-                    message.IsPermanetlyDeletedBySender = true;
+                    message.IsPermanentlyDeletedBySender = true;
                 }
 
-                if (message.IsDeletedByReceiver && !message.IsPermanetlyDeletedByReceiver && message.DeletedByReceiverAt.HasValue && message.DeletedByReceiverAt.Value <= deleteBefore)
+                if (message.IsDeletedByReceiver && !message.IsPermanentlyDeletedByReceiver && message.DeletedByReceiverAt.HasValue && message.DeletedByReceiverAt.Value <= deleteBefore)
                 {
-                    message.IsPermanetlyDeletedByReceiver = true;
+                    message.IsPermanentlyDeletedByReceiver = true;
                 }
             }
             await context.SaveChangesAsync(cancellationToken);

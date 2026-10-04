@@ -16,10 +16,10 @@
 
         public bool IsDeletedBySender { get; set; }
         public DateTime? DeletedBySenderAt { get; set; }
-        public bool IsPermanetlyDeletedBySender { get; set; }
+        public bool IsPermanentlyDeletedBySender { get; set; }
 
         public bool IsDeletedByReceiver { get; set; }
         public DateTime? DeletedByReceiverAt { get; set; }
-        public bool IsPermanetlyDeletedByReceiver { get; set; }
+        public bool IsPermanentlyDeletedByReceiver { get; set; }
     }
 }

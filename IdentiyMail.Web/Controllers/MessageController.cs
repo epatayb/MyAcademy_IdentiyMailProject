@@ -137,7 +137,7 @@ namespace IdentiyMail.Web.Controllers
 
             var messages = await _context.UserMessages
                 .AsNoTracking()
-                .Where(x => x.SenderId == userId && !x.IsDeletedBySender && !x.IsPermanetlyDeletedBySender)
+                .Where(x => x.SenderId == userId && !x.IsDeletedBySender && !x.IsPermanentlyDeletedBySender)
                 .OrderByDescending(x => x.SendDate)
                 .Select(x => new
                 {
@@ -197,8 +197,8 @@ namespace IdentiyMail.Web.Controllers
 
             var messages = await _context.UserMessages
                 .AsNoTracking()
-                .Where(x => (x.ReceiverId == userId && x.IsDeletedByReceiver) ||
-                            (x.SenderId == userId && x.IsDeletedBySender))
+                .Where(x => (x.ReceiverId == userId && x.IsDeletedByReceiver && !x.IsPermanentlyDeletedByReceiver) ||
+                            (x.SenderId == userId && x.IsDeletedBySender && !x.IsPermanentlyDeletedBySender))
                 .OrderByDescending(x => x.SendDate)
                 .Select(x => new
                 {
@@ -220,13 +220,20 @@ namespace IdentiyMail.Web.Controllers
                     ReceiverLastName = x.Receiver.LastName,
                     ReceiverEmail = x.Receiver.Email,
                     ReceiverProfileImageUrl = x.Receiver.ProfileImageUrl,
+
+                    x.DeletedBySenderAt,
+                    x.DeletedByReceiverAt,
+                    x.IsDeletedBySender,
+                    x.IsDeletedByReceiver,
+                    x.IsPermanentlyDeletedBySender,
+                    x.IsPermanentlyDeletedByReceiver
                 })
                 .ToListAsync();
 
             var model = messages
                 .Select(x =>
                 {
-                    var isIncoming = x.ReceiverId == userId;
+                    var isIncoming = x.ReceiverId == userId && x.IsDeletedByReceiver && !x.IsPermanentlyDeletedByReceiver;
 
                     var firstName = isIncoming
                         ? x.SenderFirstName
@@ -257,6 +264,9 @@ namespace IdentiyMail.Web.Controllers
                         SendDate = x.SendDate,
                         IsIncoming = isIncoming,
                         IsRead = x.IsRead,
+                        DeletedAt = isIncoming 
+                            ? x.DeletedByReceiverAt
+                            : x.DeletedBySenderAt,
                     };
                 })
                 .ToList();
@@ -323,7 +333,7 @@ namespace IdentiyMail.Web.Controllers
 
             if (side == "receiver")
             {
-                if (message.ReceiverId != userId || message.IsPermanetlyDeletedByReceiver)
+                if (message.ReceiverId != userId || message.IsPermanentlyDeletedByReceiver)
                 { return NotFound(); }
 
                 if (!message.IsDeletedByReceiver)
@@ -334,7 +344,7 @@ namespace IdentiyMail.Web.Controllers
             }
             else if (side == "sender")
             {
-                if (message.SenderId != userId || message.IsPermanetlyDeletedBySender)
+                if (message.SenderId != userId || message.IsPermanentlyDeletedBySender)
                 { return NotFound(); }
 
                 if (!message.IsDeletedBySender)
@@ -376,7 +386,7 @@ namespace IdentiyMail.Web.Controllers
 
             if (side == "receiver")
             {
-                if (message.ReceiverId != userId || !message.IsDeletedByReceiver || message.IsPermanetlyDeletedByReceiver)
+                if (message.ReceiverId != userId || !message.IsDeletedByReceiver || message.IsPermanentlyDeletedByReceiver)
                 { return NotFound(); }
 
                 message.IsDeletedByReceiver = false;
@@ -384,7 +394,7 @@ namespace IdentiyMail.Web.Controllers
             }
             else if (side == "sender")
             {
-                if (message.SenderId != userId || !message.IsDeletedBySender || message.IsPermanetlyDeletedBySender)
+                if (message.SenderId != userId || !message.IsDeletedBySender || message.IsPermanentlyDeletedBySender)
                 { return NotFound(); }
 
                 message.IsDeletedBySender = false;
@@ -415,21 +425,21 @@ namespace IdentiyMail.Web.Controllers
 
             if (side == "receiver")
             {
-                if (message.ReceiverId != userId || !message.IsDeletedByReceiver || message.IsPermanetlyDeletedByReceiver)
+                if (message.ReceiverId != userId || !message.IsDeletedByReceiver || message.IsPermanentlyDeletedByReceiver)
                 {
                     return NotFound();
                 }
 
-                message.IsPermanetlyDeletedByReceiver = true;
+                message.IsPermanentlyDeletedByReceiver = true;
             }
             else if (side == "sender")
             {
-                if (message.SenderId != userId || !message.IsDeletedBySender || message.IsPermanetlyDeletedBySender)
+                if (message.SenderId != userId || !message.IsDeletedBySender || message.IsPermanentlyDeletedBySender)
                 {
                     return NotFound();
                 }
 
-                message.IsPermanetlyDeletedBySender = true;
+                message.IsPermanentlyDeletedBySender = true;
             }
             else
             {
