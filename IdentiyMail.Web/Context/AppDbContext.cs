@@ -23,9 +23,16 @@ namespace IdentiyMail.Web.Context
                                             (x => x.ReceiverId)
                                         .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<AppUser>().HasMany(x => x.DraftMessages)
+                                        .WithOne(x => x.Sender).HasForeignKey
+                                            (x => x.SenderId)
+                                        .OnDelete(DeleteBehavior.Restrict);
+
             base.OnModelCreating(builder);
         }
 
         public DbSet<UserMessage> UserMessages { get; set; }
+
+        public DbSet<DraftMessage> DraftMessages { get; set; }        
     }
 }

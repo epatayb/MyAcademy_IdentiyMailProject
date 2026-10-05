@@ -23,7 +23,7 @@
 
             <div class="mail-detail-toolbar-actions">
                 <form asp-controller="Message"
-                      asp-action="ToogleImportant"
+                      asp-action="ToggleImportant"
                       asp-route-id="@Model.Id"
                       asp-route-returnUrl="@($"{Context.Request.Path}{Context.Request.QueryString}")"
                       method="post">
