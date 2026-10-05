@@ -1,46 +1,92 @@
-﻿@model UserMessage
+﻿@using System.Globalization
+@model MessageDetailViewModel
 
 @{
     ViewData["Title"] = "Gönderilen Mesaj";
+    var trCulture = new CultureInfo("tr-TR");
 }
 
-<h1>Gönderilen Mail İçeriği</h1>
+<section class="mail-detail-page">
+    <div class="mail-detail-panel">
+        <div class="mail-detail-toolbar">
+            <a asp-controller="Message"
+               asp-action="Sent"
+               class="mail-detail-back-button"
+               title="Gönderilen kutusuna dön">
 
-<table class="table table-striped">
+                <span class="material-symbols-outlined">
+                    arrow_back
+                </span>
 
-    <tr>
-        <th>Alıcı Ad Soyad:</th>
+                <span>Gönderilenler</span>
+            </a>
 
-        <td>
-            @Model.Receiver.FirstName
-            @Model.Receiver.LastName
-        </td>
-    </tr>
+            <div class="mail-detail-toolbar-actions">
+                <form asp-controller="Message"
+                      asp-action="MoveToTrash"
+                      asp-route-id="@Model.Id"
+                      asp-route-side="sender"
+                      asp-route-returnUrl="@Url.Action("Sent", "Message")"
+                      method="post">
 
-    <tr>
-        <th>Alıcı Email:</th>
-        <td>@Model.Receiver.Email</td>
-    </tr>
+                    <button type="submit"
+                            class="mail-detail-icon-button is-danger"
+                            title="Çöp kutusuna taşı">
 
-    <tr>
-        <th>Konu:</th>
-        <td>@Model.Subject</td>
-    </tr>
+                        <span class="material-symbols-outlined">
+                            delete
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
 
-    <tr>
-        <th>Tarih:</th>
-        <td>@Model.SendDate.ToString("dd.MM.yyyy HH:mm")</td>
-    </tr>
+        <div class="mail-detail-heading">
+            <h1>@Model.Subject</h1>
+        </div>
 
-    <tr>
-        <th>Mail İçeriği:</th>
-        <td>@Model.Body</td>
-    </tr>
+        <div class="mail-detail-contact">
+            @if (!string.IsNullOrWhiteSpace(Model.ContactProfileImageUrl))
+            {
+                <img src="@Model.ContactProfileImageUrl"
+                     alt="@Model.ContactFullName"
+                     class="mail-detail-avatar" />
+            }
+            else
+            {
+                <span class="mail-detail-avatar mail-message-initials">
+                    @Model.ContactInitials
+                </span>
+            }
 
-</table>
+            <div class="mail-detail-contact-info">
+                <span class="mail-detail-contact-name">
+                    @Model.ContactFullName
+                </span>
 
-<a asp-controller="Message"
-   asp-action="Sent"
-   class="btn btn-outline-dark">
-    Gönderilenlere Geri Dön
-</a>
+                <span class="mail-detail-contact-email">
+                    @Model.ContactEmail
+                </span>
+            </div>
+
+            <div class="mail-detail-meta">
+                <span class="mail-read-status @(Model.IsRead ? "is-read" : "")">
+                    <span class="material-symbols-outlined">
+                        @(Model.IsRead ? "done_all" : "done")
+                    </span>
+
+                    @(Model.IsRead ? "Okundu" : "Okunmadı")
+                </span>
+
+                <time class="mail-detail-date" datetime="@Model.SendDate.ToString("O")">
+                    @Model.SendDate.ToString("dd MMMM yyyy HH:mm", trCulture)
+                </time>
+            </div>            
+        </div>
+
+        <div class="mail-detail-body">
+            @Model.Body
+        </div>
+
+    </div>
+</section>

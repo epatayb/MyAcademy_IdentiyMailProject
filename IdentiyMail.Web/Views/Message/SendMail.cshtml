@@ -1,26 +1,79 @@
 ﻿@model SendMailDto
+
 @{
-    ViewData["Title"] = "Mail Oluştur";
+    ViewData["Title"] = "Yeni Mesaj";
 }
 
-<h1>Yeni Mail Gönder</h1>
+<section class="mail-compose-page">
+    <div class="mail-compose-panel">
+        <div class="mail-compose-header">
+            <div>
+                <h1>Yeni Mesaj</h1>
+                <span>Yeni mesaj oluşturun</span>
+            </div>
 
-<form asp-controller="Message" asp-action="SendMail" method="post">
-    <label>Alıcı Mail</label>
-    <input type="text" asp-for="ReceiverMail" class="form-control" required/>
-    <br />
+            <a asp-controller="Message"
+               asp-action="Index"
+               class="mail-compose-close"
+               title="Kapat">
 
-    <label>Konu</label>
-    <input type="text" asp-for="Subject" class="form-control" required />
-    <br />
+                <span class="material-symbols-outlined">
+                    close
+                </span>
+            </a>
+        </div>
 
-    <label>Mail içeriği</label>
-    <textarea asp-for="Body" class="form-control" required rows="10">
-    </textarea> 
-    <br />
+        <form asp-controller="Message"
+              asp-action="SendMail"
+              method="post"
+              class="mail-compose-form">
 
-    <span class="text-danger">@Html.ValidationSummary()</span>
+            <div asp-validation-summary="ModelOnly" class="mail-compose-validation"></div>
 
-    <button class="btn btn-dark">Gönder</button>
+            <div class="mail-compose-field">
+                <label asp-for="ReceiverMail">Kime</label>
+                <input asp-for="ReceiverMail" type="email" placeholder="Alıcının email adresi" />
+                <span asp-validation-for="ReceiverMail" class="mail-compose-field-error"></span>
+            </div>
 
-</form>
+            <div class="mail-compose-field">
+
+                <label asp-for="Subject">
+                    Konu
+                </label>
+
+                <input asp-for="Subject"
+                       placeholder="Mesaj konusu" />
+
+                <span asp-validation-for="Subject"
+                      class="mail-compose-field-error">
+                </span>
+
+            </div>
+
+            <div class="mail-compose-body">
+                <textarea asp-for="Body" 
+                          placeholder="Mesajınızı yazın..."
+                          autofocus>
+                </textarea>
+
+                <span asp-validation-for="Body" class="mail-compose-field-error"></span>
+            </div>
+
+            <div class="mail-compose-footer">
+                <button type="submit" class="mail-compose-send-button">
+                    <span>Gönder</span>
+
+                    <span class="material-symbols-outlined">send</span>
+                </button>
+
+                <a asp-controller="Message"
+                    asp-action="Index"
+                    class="mail-compose-cancel-button">
+                    İptal
+                </a>
+            </div>
+        </form>
+    </div>
+</section>
+

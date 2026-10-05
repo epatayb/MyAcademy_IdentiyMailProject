@@ -65,6 +65,7 @@ namespace IdentiyMail.Web.Controllers
         }
         #endregion
 
+        #region Mesaj gönderme işlemi
         public IActionResult SendMail()
         {
             return View();
@@ -107,7 +108,9 @@ namespace IdentiyMail.Web.Controllers
 
             return RedirectToAction(nameof(Sent));
         }
+        #endregion
 
+        #region Gelen mesaj detayı
         [HttpGet]
         public async Task<IActionResult> MailDetail(int id)
         {
@@ -115,7 +118,7 @@ namespace IdentiyMail.Web.Controllers
 
             var message = await _context.UserMessages
                 .Include(x => x.Sender)
-                .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == userId && !x.IsDeletedByReceiver);
+                .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == userId && !x.IsDeletedByReceiver && !x.IsPermanentlyDeletedByReceiver);
 
             if (message is null)
             {
@@ -127,9 +130,27 @@ namespace IdentiyMail.Web.Controllers
                 message.IsRead = true;
                 await _context.SaveChangesAsync();
             }
-            return View(message);
-        }
 
+            var model = new MessageDetailViewModel
+            {
+                Id = message.Id,
+                ContactFullName = $"{message.Sender.FirstName} {message.Sender.LastName}".Trim(),
+                ContactEmail = message.Sender.Email ?? string.Empty,
+                ContactProfileImageUrl = message.Sender.ProfileImageUrl,
+                ContactInitials = CreateInitials(message.Sender.FirstName, message.Sender.LastName),
+                Subject = message.Subject,
+                Body = message.Body,
+                SendDate = message.SendDate,
+                IsIncoming = true,
+                IsRead = message.IsRead,
+                IsImportant = message.IsImportant
+            };
+
+            return View(model);
+        }
+        #endregion
+
+        #region Gönderilen mesajları listeleme
         [HttpGet]
         public async Task<IActionResult> Sent()
         {
@@ -170,6 +191,7 @@ namespace IdentiyMail.Web.Controllers
 
             return View(model);
         }
+        #endregion
 
         #region Gönderilen mesaj detayı
         [HttpGet]
@@ -187,7 +209,47 @@ namespace IdentiyMail.Web.Controllers
                 return NotFound();
             }
 
-            return View(message);
+            var model = new MessageDetailViewModel
+            {
+                Id = message.Id,
+                ContactFullName = $"{message.Receiver.FirstName} {message.Receiver.LastName}".Trim(),
+                ContactEmail = message.Receiver.Email ?? string.Empty,
+                ContactProfileImageUrl = message.Receiver.ProfileImageUrl,
+                ContactInitials = CreateInitials(message.Receiver.FirstName, message.Receiver.LastName),
+                Subject = message.Subject,
+                Body = message.Body,
+                SendDate = message.SendDate,
+                IsIncoming = false,
+                IsRead = message.IsRead,
+            };
+
+            return View(model);
+        }
+        #endregion
+
+        #region Mesaj yanıtlama işlemi
+        [HttpGet]
+        public async Task<IActionResult> Reply(int id)
+        {
+            var userId = GetCurrentUserId();
+
+            var message = await _context.UserMessages
+                .AsNoTracking()
+                .Include(x => x.Sender)
+                .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == userId && !x.IsDeletedByReceiver && !x.IsPermanentlyDeletedByReceiver);
+
+            if (message is null)
+            { return NotFound(); }
+
+            var subject = message.Subject.StartsWith("RE:", StringComparison.OrdinalIgnoreCase) ? message.Subject : $"RE: {message.Subject}";
+
+            var model = new SendMailDto
+            {
+                ReceiverMail = message.Sender.Email ?? string.Empty,
+                Subject = subject
+            };
+
+            return View("SendMail", model);
         }
         #endregion
 
