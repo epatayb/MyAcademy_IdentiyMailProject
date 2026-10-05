@@ -171,6 +171,7 @@ namespace IdentiyMail.Web.Controllers
             return View(model);
         }
 
+        #region Gönderilen mesaj detayı
         [HttpGet]
         public async Task<IActionResult> SentMailDetail(int id)
         {
@@ -179,7 +180,7 @@ namespace IdentiyMail.Web.Controllers
             var message = await _context.UserMessages
                 .AsNoTracking()
                 .Include(x => x.Receiver)
-                .FirstOrDefaultAsync(x => x.Id == id && x.SenderId == userId && !x.IsDeletedBySender);
+                .FirstOrDefaultAsync(x => x.Id == id && x.SenderId == userId && !x.IsDeletedBySender && !x.IsPermanentlyDeletedBySender);
 
             if (message is null)
             {
@@ -188,6 +189,7 @@ namespace IdentiyMail.Web.Controllers
 
             return View(message);
         }
+        #endregion
 
         #region Çöp kutusundaki mesajları listeleme
         [HttpGet]
@@ -243,6 +245,18 @@ namespace IdentiyMail.Web.Controllers
                         ? x.SenderLastName
                         : x.ReceiverLastName;
 
+                    var deletedAt = isIncoming
+                            ? x.DeletedByReceiverAt
+                            : x.DeletedBySenderAt;
+
+                    int? daysUntilDeletion = null;
+
+                    if (deletedAt.HasValue)
+                    {
+                        var permanentDeleteDate = deletedAt.Value.Date.AddDays(30);
+                        daysUntilDeletion = (permanentDeleteDate - DateTime.Now.Date).Days;
+                    }
+
                     return new TrashMessageViewModel
                     {
                         Id = x.Id,
@@ -264,9 +278,8 @@ namespace IdentiyMail.Web.Controllers
                         SendDate = x.SendDate,
                         IsIncoming = isIncoming,
                         IsRead = x.IsRead,
-                        DeletedAt = isIncoming 
-                            ? x.DeletedByReceiverAt
-                            : x.DeletedBySenderAt,
+                        DeletedAt = deletedAt,
+                        DaysUntilDeletion = daysUntilDeletion,
                     };
                 })
                 .ToList();

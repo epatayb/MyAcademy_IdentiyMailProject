@@ -20,6 +20,8 @@
 
         public DateTime? DeletedAt { get; set; }
 
+        public int? DaysUntilDeletion { get; set; }
+
         // true = gelen mesaj - false = gönderilen mesaj
         public bool IsIncoming { get; set; }
 

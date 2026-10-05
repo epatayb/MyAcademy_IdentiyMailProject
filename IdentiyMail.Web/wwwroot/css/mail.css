@@ -51,7 +51,6 @@ body {
 .mail-sidebar {
     position: fixed;
     inset: 0 auto 0 0;
-
     width: var(--mail-sidebar-width);
     height: 100vh;
     display: flex;
@@ -1026,53 +1025,6 @@ body {
 /* #endregion */
 
 
-/* #region Çöp kutusu mobil */
-
-@media (max-width: 768px) {
-
-    .mail-trash-row {
-        min-height: 104px;
-        padding: 10px;
-        grid-template-columns: 34px minmax(0, 1fr) auto;
-        grid-template-rows: auto auto auto;
-        gap: 5px 9px;
-    }
-
-        .mail-trash-row .mail-message-avatar {
-            grid-column: 1;
-            grid-row: 1 / 4;
-            align-self: center;
-        }
-
-    .mail-trash-contact {
-        grid-column: 2;
-        grid-row: 1;
-    }
-
-    .mail-trash-direction {
-        grid-column: 3;
-        grid-row: 1;
-    }
-
-    .mail-trash-row .mail-message-content {
-        grid-column: 2 / 4;
-        grid-row: 2;
-        padding-right: 0px;
-    }
-
-    .mail-trash-actions {
-        grid-column: 2 / 4;
-        grid-row: 3;
-        justify-self: stretch;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 5px;
-    }
-}
-
-/* #endregion */
-
 /* #region Mesaj satırı çöp kutusu aksiyonu */
 
 .mail-message-trash-form {
@@ -1194,6 +1146,123 @@ body {
         font-size: 17px;
     }
 
+/* #region Çöp kutusu silinme uyarısı */
+
+.mail-trash-expiry-warning {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--mail-danger);
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+    .mail-trash-expiry-warning .material-symbols-outlined {
+        font-size: 14px;
+    }
+
+/* #endregion */
+
+/* #endregion */
+
+/* #region Çöp kutusu mobil görünümü */
+
+@media (max-width: 768px) {
+
+    .mail-trash-row {
+        min-height: 108px;
+        padding: 11px 10px;
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        grid-template-rows: auto auto auto auto;
+        column-gap: 9px;
+        row-gap: 5px;
+        align-items: start;
+    }
+
+        .mail-trash-row .mail-message-avatar {
+            grid-column: 1;
+            grid-row: 1 / 5;
+            align-self: start;
+            margin-top: 1px;
+        }
+
+    .mail-trash-contact {
+        grid-column: 2;
+        grid-row: 1;
+        min-width: 0;
+    }
+
+        .mail-trash-contact .mail-message-sender-email {
+            display: none;
+        }
+
+    .mail-trash-direction {
+        grid-column: 3;
+        grid-row: 1;
+        justify-self: end;
+        align-self: start;
+        white-space: nowrap;
+    }
+
+    .mail-trash-row .mail-message-content {
+        grid-column: 2 / 4;
+        grid-row: 2;
+        min-width: 0;
+        padding-right: 0;
+    }
+
+    .mail-trash-row .mail-message-subject {
+        max-width: 48%;
+    }
+
+    .mail-trash-expiry-warning {
+        grid-column: 2 / 4;
+        grid-row: 3;
+        min-width: 0;
+        white-space: normal;
+        line-height: 1.25;
+    }
+
+    .mail-trash-actions {
+        grid-column: 2 / 4;
+        grid-row: 4;
+        width: 100%;
+        justify-self: stretch;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+        .mail-trash-actions .mail-message-date {
+            margin: 0;
+            justify-self: start;
+            font-size: 10px;
+        }
+
+    .mail-trash-action-buttons {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .mail-trash-restore-button,
+    .mail-trash-delete-button {
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border-radius: 7px;
+    }
+
+        .mail-trash-restore-button > span:last-child,
+        .mail-trash-delete-button > span:last-child {
+            display: none;
+        }
+}
+
 /* #endregion */
 
 /* #region Gönderilen mesaj satırı */
@@ -1256,36 +1325,110 @@ body {
 @media (max-width: 768px) {
 
     .mail-sent-row {
-        min-height: 82px;
+        min-height: 102px;
+        padding: 11px 10px;
+        display: grid;
         grid-template-columns: 34px minmax(0, 1fr) auto;
-        grid-template-rows: auto auto;
-        gap: 4px 9px;
-        padding: 10px;
+        grid-template-rows: auto auto auto;
+        column-gap: 9px;
+        row-gap: 5px;
+        align-items: center;
     }
 
         .mail-sent-row .mail-message-avatar {
             grid-column: 1;
-            grid-row: 1 / 3;
+            grid-row: 1 / 4;
+            align-self: start;
+            margin-top: 1px;
         }
 
         .mail-sent-row .mail-message-sender {
             grid-column: 2;
             grid-row: 1;
+            min-width: 0;
+        }
+
+        .mail-sent-row .mail-message-sender-email {
+            display: none;
         }
 
         .mail-sent-row .mail-message-content {
-            grid-column: 2;
+            grid-column: 2 / 4;
             grid-row: 2;
-            padding-right: 30px;
+            min-width: 0;
+            padding-right: 0px;
+        }
+
+        .mail-sent-row .mail-message-subject {
+            max-width: 48%;
         }
 
     .mail-sent-meta {
+        display: contents;
+    }
+
+    .mail-sent-row .mail-read-status {
         grid-column: 3;
-        grid-row: 1 / 3;
-        align-self: center;
+        grid-row: 1;
+        justify-self: end;
+        white-space: nowrap;
+        font-size: 9px;
+    }
+
+        .mail-sent-row .mail-read-status .material-symbols-outlined {
+            font-size: 14px;
+        }
+
+
+    /* Tarih */
+
+    .mail-sent-row .mail-message-date {
+        grid-column: 2;
+        grid-row: 3;
+        justify-self: start;
+        padding-left: 0;
+        font-size: 10px;
+    }
+
+
+    /* Çöp butonu */
+
+    .mail-message-row-wrapper
+    .mail-message-trash-form {
+        top: auto;
+        right: 8px;
+        bottom: 8px;
+        transform: none;
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+/* #region Küçük mobil son düzenlemeler */
+
+@media (max-width: 480px) {
+
+    .mail-inbox-title-row h1 {
+        font-size: 17px;
+    }
+
+    .mail-inbox-total {
+        font-size: 9px;
+        line-height: 1.35;
+    }
+
+    .mail-trash-direction {
+        font-size: 9px;
     }
 
     .mail-read-status {
         font-size: 9px;
     }
+
+    .mail-trash-row,
+    .mail-sent-row {
+        column-gap: 8px;
+    }
 }
+
+/* #endregion */

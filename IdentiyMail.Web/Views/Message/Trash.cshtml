@@ -105,6 +105,20 @@
                                 }
                             </time>
 
+                            @if(item.DaysUntilDeletion.HasValue && item.DaysUntilDeletion.Value <= 7)
+                            {
+                                <span class="mail-trash-expiry-warning">
+                                    @if(item.DaysUntilDeletion.Value <= 0)
+                                    {
+                                        <text>Son gün! Bugün silinecektir</text>
+                                    }
+                                    else
+                                    {
+                                        <text>@item.DaysUntilDeletion.Value gün sonra silinecektir.</text>
+                                    }
+                                </span>
+                            }
+
                             <div class="mail-trash-action-buttons">
 
                                 <form asp-controller="Message"
