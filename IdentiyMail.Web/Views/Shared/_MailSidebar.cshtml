@@ -79,6 +79,17 @@
         </a>
 
         <a asp-controller="Message"
+           asp-action="Drafts"
+           class="mail-nav-item @GetActiveClass("Message", "Drafts")">
+
+           <span class="material-symbols-outlined">
+               draft
+           </span>
+
+           <span>Taslaklar</span>
+        </a>
+
+        <a asp-controller="Message"
             asp-action="Important"
             class="mail-nav-item @GetActiveClass("Message", "Important")">
             

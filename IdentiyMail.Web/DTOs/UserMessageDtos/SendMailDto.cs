@@ -4,6 +4,8 @@ namespace IdentiyMail.Web.DTOs.UserMessageDtos
 {
     public class SendMailDto
     {
+        public int? DraftId { get; set; }
+
         [Required(ErrorMessage = "Alıcı mail alanı boş geçilemez.")]
         [EmailAddress(ErrorMessage = "Geçerli bir email adresi giriniz.")]
         public string ReceiverMail { get; set; } = string.Empty;
@@ -13,6 +15,6 @@ namespace IdentiyMail.Web.DTOs.UserMessageDtos
         public string Subject { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Mesaj içeriği zorunludur.")]
-        public string Body { get; set; } = string.Empty;      
+        public string Body { get; set; } = string.Empty;
     }
 }

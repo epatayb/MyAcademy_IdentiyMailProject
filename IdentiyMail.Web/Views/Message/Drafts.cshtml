@@ -1,0 +1,121 @@
+﻿@using System.Globalization
+@model List<DraftMessageViewModel>
+
+@{
+    ViewData["Title"] = "Taslaklar";
+    var trCulture = new CultureInfo("tr-TR");
+}
+
+<section class="mail-inbox-page">
+    <div class="mail-inbox-panel">
+        <div class="mail-inbox-header">
+            <div class="mail-inbox-heading">
+                <div class="mail-inbox-title-row">
+                    <h1>Taslaklar</h1>
+
+                    @if(Model.Count > 0)
+                    {
+                        <span class="mail-unread-summary">
+                            @Model.Count taslak
+                        </span>
+                    }
+                </div>
+
+                <span class="mail-inbox-total">
+                    Kaydettiğiniz fakat henüz göndermediğiniz mesajlar
+                </span>
+            </div>
+        </div>
+
+        @if(TempData["DraftSuccess"] is not null)
+        {
+            <div class="mail-success-alert">
+                @TempData["DraftSuccess"]
+            </div>
+        }
+
+        @if(Model.Count == 0)
+        {
+            <div class="mail-empty-state">
+                <span class="material-symbols-outlined">
+                    draft
+                </span>
+
+                <h2>Kaydedilmiş taslağınız yok</h2>
+
+                <p>
+                    Daha sonra devam etmek istediğiniz mesajları
+                    taslak olarak kaydedebilirsiniz.
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="mail-message-list">
+                @foreach(var item in Model)
+                {
+                    <div class="mail-message-row-wrapper">
+                        <a asp-controller="Message"
+                           asp-action="EditDraft"
+                           asp-route-id="@item.Id"
+                           class="mail-draft-row">
+                        
+                           <div class="mail-draft-recipient">
+                               @item.ReceiverMail
+                           </div>
+
+                           <div class="mai-message-content">
+                               <span class="mail-draft-badge">
+                                   Taslak
+                               </span>
+
+                               <span class="mail-message-subject">
+                                   @item.Subject
+                               </span>
+
+                               <span class="mail-message-preview">
+                                   - @item.Preview
+                               </span>
+                           </div>
+
+                           <time class="mail-message-date" datetime="@item.UpdatedAt.ToString("O")">
+                               @if(item.UpdatedAt.Date == DateTime.Today)
+                               {
+                                   @item.UpdatedAt.ToString("HH:mm")
+                               }
+                               else if (item.UpdatedAt.Date == DateTime.Today.AddDays(-1))
+                               {
+                                   <text>Dün</text>
+                               }
+                               else if (item.UpdatedAt.Year == DateTime.Today.Year)
+                               {
+                                   @item.UpdatedAt.ToString("dd MMM", trCulture)
+                               }
+                               else
+                               {
+                                   @item.UpdatedAt.ToString("dd MMM yyyy", trCulture)
+                               }
+                           </time>
+                       </a>
+
+                       <form asp-controller="Message"
+                             asp-action="DeleteDraft"
+                             asp-route-id="@item.Id"
+                             method="post"
+                             class="mail-message-trash-form">
+
+                             <button type="submit"
+                                     class="mail-message-trash-button"
+                                     title="Taslağı sil">
+
+                                     <span class="material-symbols-outlined">
+                                         delete
+                                     </span>
+                             </button>
+                       </form>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>

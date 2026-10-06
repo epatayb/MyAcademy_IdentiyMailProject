@@ -102,6 +102,18 @@ namespace IdentiyMail.Web.Controllers
             };
 
             _context.UserMessages.Add(newMessage);
+
+            if (sendMailDto.DraftId.HasValue)
+            {
+                var draft = await _context.DraftMessages
+                    .FirstOrDefaultAsync(x => x.Id == sendMailDto.DraftId.Value && x.SenderId == senderId);
+
+                if (draft is not null)
+                {
+                    _context.DraftMessages.Remove(draft);
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             TempData["MessageSuccess"] = "Mesajınız başarıyla gönderildi.";
@@ -350,6 +362,161 @@ namespace IdentiyMail.Web.Controllers
         }
         #endregion
 
+        #region Taslak mesajları listeleme
+
+        [HttpGet]
+        public async Task<IActionResult> Drafts()
+        {
+            var userId = GetCurrentUserId();
+
+            var drafts = await _context.DraftMessages
+                .AsNoTracking()
+                .Where(x => x.SenderId == userId)
+                .OrderByDescending(x => x.UpdatedAt)
+                .Select(x => new
+                {
+                    x.Id,
+                    x.ReceiverMail,
+                    x.Subject,
+                    x.Body,
+                    x.UpdatedAt
+                })
+                .ToListAsync();
+
+            var model = drafts
+                .Select(x => new DraftMessageViewModel
+                {
+                    Id = x.Id,
+                    ReceiverMail = string.IsNullOrWhiteSpace(x.ReceiverMail)
+                        ? "Alıcı belirtilmedi"
+                        : x.ReceiverMail,
+                    Subject = string.IsNullOrWhiteSpace(x.Subject)
+                        ? "(Konu yok)"
+                        : x.Subject,
+                    Preview = CreateMessagePreview(x.Body),
+                    UpdatedAt = x.UpdatedAt
+                })
+                .ToList();
+
+            return View(model);
+        }
+        #endregion
+
+        #region Taslak mesaj düzenleme
+        [HttpGet]
+        public async Task<IActionResult> EditDraft(int id)
+        {
+            var userId = GetCurrentUserId();
+
+            var draft = await _context.DraftMessages
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id && x.SenderId == userId);
+
+            if (draft is null)
+            {
+                return NotFound();
+            }
+            var model = new SendMailDto
+            {
+                DraftId = draft.Id,
+                ReceiverMail = draft.ReceiverMail ?? string.Empty,
+                Subject = draft.Subject ?? string.Empty,
+                Body = draft.Body ?? string.Empty
+            };
+
+            return View("SendMail", model);
+        }
+        #endregion
+
+        #region Taslak mesaj kaydetme ve güncelleme
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveDraft(SendMailDto model)
+        {
+            var userId = GetCurrentUserId();
+
+            if(model.DraftId.HasValue)
+            {
+                var draft = await _context.DraftMessages
+                    .FirstOrDefaultAsync(x => x.Id == model.DraftId.Value && x.SenderId == userId);
+
+                if (draft is null)
+                {
+                    return NotFound();
+                }
+
+                draft.ReceiverMail = string.IsNullOrWhiteSpace(model.ReceiverMail)
+                    ? null
+                    : model.ReceiverMail.Trim();
+
+                draft.Subject = string.IsNullOrWhiteSpace(model.Subject)
+                    ? null
+                    : model.Subject.Trim();
+
+                draft.Body = string.IsNullOrWhiteSpace(model.Body)
+                    ? null
+                    : model.Body.Trim();
+
+                draft.UpdatedAt = DateTime.Now;
+            }
+            else
+            {
+                var draft = new DraftMessage
+                {
+                    SenderId = userId,
+
+                    ReceiverMail = string.IsNullOrWhiteSpace(model.ReceiverMail)
+                        ? null
+                        : model.ReceiverMail.Trim(),
+
+                    Subject = string.IsNullOrWhiteSpace(model.Subject)
+                        ? null
+                        : model.Subject.Trim(),
+
+                    Body = string.IsNullOrWhiteSpace(model.Body)
+                        ? null
+                        : model.Body,
+
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+
+                _context.DraftMessages.Add(draft);
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["DraftSuccess"] = "Taslak başarıyla kaydedildi.";
+
+            return RedirectToAction(nameof(Drafts));
+        }
+        #endregion
+
+        #region Taslak mesaj silme
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteDraft(int id)
+        {
+            var userId = GetCurrentUserId();
+
+            var draft = await _context.DraftMessages
+                .FirstOrDefaultAsync(x => x.Id == id && x.SenderId == userId);
+
+            if (draft is null)
+            {
+                return NotFound();
+            }
+
+            _context.DraftMessages.Remove(draft);
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Drafts));
+        }
+        #endregion
+
         #region Mesaj önemli durumunu değiştirme
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -555,7 +722,7 @@ namespace IdentiyMail.Web.Controllers
             return $"{firstNameInitial}{lastNameInitial}";
         }
 
-        private static string CreateMessagePreview(string body)
+        private static string CreateMessagePreview(string? body)
         {
             if (string.IsNullOrWhiteSpace(body))
             {

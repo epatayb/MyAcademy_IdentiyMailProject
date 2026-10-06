@@ -28,6 +28,7 @@
               method="post"
               class="mail-compose-form">
 
+            <input asp-for="DraftId" type="hidden" />
             <div asp-validation-summary="ModelOnly" class="mail-compose-validation"></div>
 
             <div class="mail-compose-field">
@@ -65,6 +66,21 @@
                     <span>Gönder</span>
 
                     <span class="material-symbols-outlined">send</span>
+                </button>
+
+                <button type="submit"
+                        asp-controller="Message"
+                        asp-action="SaveDraft"
+                        formnovalidate
+                        class="mail-compose-draft-button">
+
+                        <span class="material-symbols-outlined">
+                            draft
+                        </span>
+
+                        <span>
+                            @(Model?.DraftId.HasValue == true ? "Taslağı Güncelle" : "Taslak Olarak Kaydet")
+                        </span>
                 </button>
 
                 <a asp-controller="Message"
