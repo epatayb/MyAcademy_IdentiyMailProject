@@ -11,5 +11,7 @@ namespace IdentiyMail.Web.Entities
         public List<UserMessage> SentMessages { get; set; } = new();
         public List<UserMessage> ReceivedMessages { get; set; } = new();
         public List<DraftMessage> DraftMessages { get; set; } = new();
+        public List<Category> Categories { get; set; } = new();
+        public List<MessageCategoryAssignment> CategoryAssignments { get; set; } = new();
     }
 }

@@ -21,5 +21,7 @@
         public bool IsDeletedByReceiver { get; set; }
         public DateTime? DeletedByReceiverAt { get; set; }
         public bool IsPermanentlyDeletedByReceiver { get; set; }
+
+        public List<MessageCategoryAssignment> CategoryAssignments { get; set; } = new();
     }
 }

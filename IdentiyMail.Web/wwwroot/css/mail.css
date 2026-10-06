@@ -1958,7 +1958,10 @@ body {
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color .15s ease; border-color: #c7d7ff; color: var(--mail-primary);
+    transition: 
+        background-color .15s ease, 
+        border-color .15s ease,
+        color .15s ease;
 }
 
 .mail-compose-draft-button:hover {

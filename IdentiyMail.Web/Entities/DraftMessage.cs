@@ -17,5 +17,9 @@
         public AppUser Sender { get; set; } = null!;
 
         public int SenderId { get; set; }
+
+        public int? CategoryId { get; set; }
+
+        public Category? Category { get; set; }
     }
 }
