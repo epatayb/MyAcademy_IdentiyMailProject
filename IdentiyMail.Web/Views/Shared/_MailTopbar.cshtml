@@ -11,14 +11,22 @@
     @* #endregion *@
 
     @* #region Mesaj arama alanı *@
-    <div class="mail-search">
-        <span class="material-symbols-outlined mail-search-icon">search</span>
+    <form asp-controller="Message"
+          asp-action="Search"
+          method="post"
+          class="mail-search">
 
-        <input type="text"
-               placeholder="Mesajlarda ara..."
-               aria-label="Mesajlarda ara" />
+          <span class="material-symbols-outlined">
+              search
+          </span>
 
-    </div>
+          <input type="search"
+                 name="q"
+                 value="@Context.Request.Query["q"]"
+                 placeholder="Mesajlarda ara..."
+                 aria-label="Mesajlarda ara..."
+                 autocomplete="off" />
+    </form>
     @* #endregion *@
 
     @* #region Giriş yapan kullanıcı *@

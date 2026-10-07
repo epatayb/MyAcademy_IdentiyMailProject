@@ -1,0 +1,161 @@
+﻿@using System.Globalization
+@model MessageSearchViewModel
+
+@{
+    ViewData["Title"] = "Arama";
+    var trCulture = new CultureInfo("tr-TR");
+}
+
+<section class="mail-inbox-page">
+    <div class="mail-inbox-panel">
+        <div class="mail-inbox-header">
+            <div class="mail-inbox-heading">
+                <div class="mail-inbox-title-row">
+                    <h1>Arama Sonuçları</h1>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Query))
+                    {
+                        <span class="mail-unread-summary">
+                            @Model.Messages.Count sonuç
+                        </span>
+                    }
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Query))
+                {
+                    <span class="mail-inbox-total">
+                        "<strong>@Model.Query</strong>"
+                        için bulunan mesajlar
+                    </span>
+                }
+            </div>
+        </div>
+                
+        @if (string.IsNullOrWhiteSpace(Model.Query))
+        {
+            <div class="mail-empty-state">
+
+                <span class="material-symbols-outlined">
+                    search
+                </span>
+
+                <h2>
+                    Mesajlarda arama yapın
+                </h2>
+
+                <p>
+                    Gönderen, alıcı, email, konu,
+                    mesaj içeriği veya kategori adı
+                    ile arama yapabilirsiniz.
+                </p>
+
+            </div>
+        }
+        else if (Model.Messages.Count == 0)
+        {
+            <div class="mail-empty-state">
+
+                <span class="material-symbols-outlined">
+                    search_off
+                </span>
+
+                <h2>
+                    Sonuç bulunamadı
+                </h2>
+
+                <p>
+                    "@Model.Query" ile eşleşen
+                    bir mesaj bulunamadı.
+                </p>
+
+            </div>
+        }
+        else
+        {
+            <div class="mail-message-list">                
+                @foreach (var item in Model.Messages)
+                {
+                    <a asp-controller="Message" 
+                       asp-action="@(item.IsIncoming ? "MailDetail" : "SentMailDetail")"
+                       asp-route-id="@item.Id"
+                       class="category-filter-message-row">
+                       
+                       @if (!string.IsNullOrWhiteSpace(item.ContactProfileImageUrl))
+                       {
+                           <img src="@item.ContactProfileImageUrl"
+                                alt="@item.ContactFullName"
+                                class="mail-message-avatar" />
+                       }
+                       else
+                       {
+                           <span class="mail-message-avatar mail-message-initials">
+                               @item.ContactInitials
+                           </span>
+                       }
+                       
+                       <div class="mail-message-sender">
+                           
+                           <span class="mail-message-sender-name">
+                               @item.ContactFullName
+                           </span>
+                           
+                           <span class="mail-message-sender-email">
+                               @item.ContactEmail
+                           </span>                    
+                       </div>
+                                       
+                       <div class="mail-message-content">
+                           <div class="mail-message-subject-line">
+                               
+                               <span class="mail-message-subject">
+                                   @item.Subject
+                               </span>
+                               
+                               @if (item.Category is not null)
+                               {
+                                   <partial name="_CategoryBadge" model="item.Category" />
+                               }                        
+                           </div>
+                           
+                           <span class="mail-message-preview">
+                               — @item.Preview
+                           </span>                    
+                       </div>
+                       
+                       <div class="category-filter-meta">                    
+                           <span class="category-direction-badge">
+                               
+                               <span class="material-symbols-outlined">                            
+                                   @(item.IsIncoming ? "call_received" : "call_made")                            
+                               </span>
+                               
+                               @(item.IsIncoming ? "Gelen" : "Gönderilen")
+                           </span>
+                           
+                           <time class="mail-message-date" datetime="@item.SendDate.ToString("O")">
+                               
+                               @if (item.SendDate.Date == DateTime.Today)
+                               {
+                                   @item.SendDate.ToString("HH:mm")
+                               }
+                               else if (item.SendDate.Date == DateTime.Today.AddDays(-1))
+                               {
+                                   <text>Dün</text>
+                               }
+                               else if (item.SendDate.Year == DateTime.Today.Year)
+                               {
+                                   @item.SendDate.ToString("dd MMM", trCulture)
+                               }
+                               else
+                               {
+                                   @item.SendDate.ToString("dd MMM yyyy", trCulture)
+                               }
+                           </time>
+                       </div>
+                    </a>
+                }
+
+            </div>
+        }
+    </div>
+</section>

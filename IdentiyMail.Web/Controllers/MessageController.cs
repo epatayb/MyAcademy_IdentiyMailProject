@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace IdentiyMail.Web.Controllers
 {
     [Authorize]
-    public class MessageController(UserManager<AppUser> _userManager, AppDbContext _context, ICategoryService _categoryService) : Controller
+    public class MessageController(UserManager<AppUser> _userManager, AppDbContext _context, ICategoryService _categoryService, IMessageQueryService _messageQueryService) : Controller
     {
         #region Gelen kutusu listeleme ve filtreleme
         public async Task<IActionResult> Index(string status = "all")
@@ -62,6 +62,29 @@ namespace IdentiyMail.Web.Controllers
             };
 
             #endregion
+
+            return View(model);
+        }
+        #endregion
+
+        #region Mesaj Arama
+        [HttpGet]
+        public async Task<IActionResult> Search(string? q)
+        {
+            var userId = GetCurrentUserId();
+
+            var query = q?.Trim() ?? string.Empty;
+
+            var model = new MessageSearchViewModel
+            {
+                Query = query,
+            };
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                model.Messages = await _messageQueryService
+                    .SearchAsync(userId, query);
+            }
 
             return View(model);
         }

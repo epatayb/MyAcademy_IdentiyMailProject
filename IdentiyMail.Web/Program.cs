@@ -43,6 +43,8 @@ builder.Services.AddScoped<IMailService, SmtpMailService>();
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
+builder.Services.AddScoped<IMessageQueryService, MessageQueryService>();
+
 builder.Services.AddHostedService<TrashCleanupBackgroundService>();
 
 var app = builder.Build();
