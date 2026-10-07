@@ -1,6 +1,7 @@
 ﻿using IdentiyMail.Web.Context;
 using IdentiyMail.Web.DTOs.UserMessageDtos;
 using IdentiyMail.Web.Entities;
+using IdentiyMail.Web.Services;
 using IdentiyMail.Web.ViewModels.MessageViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 namespace IdentiyMail.Web.Controllers
 {
     [Authorize]
-    public class MessageController(UserManager<AppUser> _userManager, AppDbContext _context) : Controller
+    public class MessageController(UserManager<AppUser> _userManager, AppDbContext _context, ICategoryService _categoryService) : Controller
     {
         #region Gelen kutusu listeleme ve filtreleme
         public async Task<IActionResult> Index(string status = "all")
@@ -66,28 +67,53 @@ namespace IdentiyMail.Web.Controllers
         #endregion
 
         #region Mesaj gönderme işlemi
-        public IActionResult SendMail()
+        public async Task<IActionResult> SendMail()
         {
-            return View();
+            var userId = GetCurrentUserId();
+
+            var model = await BuildComposeModelAsync(userId);
+
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SendMail(SendMailDto sendMailDto)
+        public async Task<IActionResult> SendMail(ComposeMessageViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(sendMailDto);
-            }
-
             var senderId = GetCurrentUserId();
 
-            var receiver = await _userManager.FindByEmailAsync(sendMailDto.ReceiverMail);
+            var form = model.Form;
+
+            if (!ModelState.IsValid)
+            {
+                var pageModel = await BuildComposeModelAsync(senderId, form);
+
+                return View(pageModel);
+            }
+
+            if (model.Form.CategoryId.HasValue)
+            {
+                var categoryIsValid = await _categoryService.IsOwnedByUserAsync(senderId, form.CategoryId.Value);
+
+                if (!categoryIsValid)
+                {
+                    ModelState.AddModelError(string.Empty, "Seçilen kategori geçersiz.");
+
+                    var pageModel = await BuildComposeModelAsync(senderId, form);
+
+                    return View(pageModel);
+                }
+            }
+
+            var receiver = await _userManager.FindByEmailAsync(form.ReceiverMail.Trim());
 
             if (receiver is null)
             {
                 ModelState.AddModelError(string.Empty, "Alıcı maili bulunamadı.");
-                return View(sendMailDto);
+
+                var pageModel = await BuildComposeModelAsync(senderId, form);
+
+                return View(pageModel);
             }
 
             var newMessage = new UserMessage
@@ -95,18 +121,32 @@ namespace IdentiyMail.Web.Controllers
                 SendDate = DateTime.Now,
                 ReceiverId = receiver.Id,
                 SenderId = senderId,
-                Subject = sendMailDto.Subject,
-                Body = sendMailDto.Body,
+                Subject = form.Subject.Trim(),
+                Body = form.Body,
                 IsRead = false,
                 IsImportant = false
             };
 
             _context.UserMessages.Add(newMessage);
 
-            if (sendMailDto.DraftId.HasValue)
+            if (form.CategoryId.HasValue)
+            {
+                var assignment = new MessageCategoryAssignment
+                {
+                    UserId = senderId,
+
+                    CategoryId = form.CategoryId.Value,
+
+                    Message = newMessage
+                };
+
+                _context.MessageCategoryAssignments.Add(assignment);
+            }
+
+            if (form.DraftId.HasValue)
             {
                 var draft = await _context.DraftMessages
-                    .FirstOrDefaultAsync(x => x.Id == sendMailDto.DraftId.Value && x.SenderId == senderId);
+                        .FirstOrDefaultAsync(x => x.Id == form.DraftId.Value && x.SenderId == senderId);
 
                 if (draft is not null)
                 {
@@ -250,16 +290,18 @@ namespace IdentiyMail.Web.Controllers
                 .Include(x => x.Sender)
                 .FirstOrDefaultAsync(x => x.Id == id && x.ReceiverId == userId && !x.IsDeletedByReceiver && !x.IsPermanentlyDeletedByReceiver);
 
-            if (message is null)
-            { return NotFound(); }
+            if (message is null) { return NotFound(); }
 
             var subject = message.Subject.StartsWith("RE:", StringComparison.OrdinalIgnoreCase) ? message.Subject : $"RE: {message.Subject}";
 
-            var model = new SendMailDto
+            var form = new SendMailDto
             {
                 ReceiverMail = message.Sender.Email ?? string.Empty,
-                Subject = subject
+
+                Subject = subject,
             };
+
+            var model = await BuildComposeModelAsync(userId, form);
 
             return View("SendMail", model);
         }
@@ -416,13 +458,17 @@ namespace IdentiyMail.Web.Controllers
             {
                 return NotFound();
             }
-            var model = new SendMailDto
+
+            var form = new SendMailDto
             {
                 DraftId = draft.Id,
+                CategoryId = draft.CategoryId,
                 ReceiverMail = draft.ReceiverMail ?? string.Empty,
                 Subject = draft.Subject ?? string.Empty,
                 Body = draft.Body ?? string.Empty
             };
+
+            var model = await BuildComposeModelAsync(userId, form);
 
             return View("SendMail", model);
         }
@@ -432,31 +478,45 @@ namespace IdentiyMail.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveDraft(SendMailDto model)
+        public async Task<IActionResult> SaveDraft(ComposeMessageViewModel model)
         {
             var userId = GetCurrentUserId();
 
-            if(model.DraftId.HasValue)
+            var form = model.Form;
+
+            if (form.CategoryId.HasValue)
+            {
+                var categoryIsValid = await _categoryService.IsOwnedByUserAsync(userId, form.CategoryId.Value);
+
+                if (!categoryIsValid)
+                {
+                    return BadRequest("Geçersiz kategori seçimi.");
+                }
+            }
+
+            if(form.DraftId.HasValue)
             {
                 var draft = await _context.DraftMessages
-                    .FirstOrDefaultAsync(x => x.Id == model.DraftId.Value && x.SenderId == userId);
+                    .FirstOrDefaultAsync(x => x.Id == form.DraftId.Value && x.SenderId == userId);
 
                 if (draft is null)
                 {
                     return NotFound();
                 }
 
-                draft.ReceiverMail = string.IsNullOrWhiteSpace(model.ReceiverMail)
+                draft.ReceiverMail = string.IsNullOrWhiteSpace(form.ReceiverMail)
                     ? null
-                    : model.ReceiverMail.Trim();
+                    : form.ReceiverMail.Trim();
 
-                draft.Subject = string.IsNullOrWhiteSpace(model.Subject)
+                draft.Subject = string.IsNullOrWhiteSpace(form.Subject)
                     ? null
-                    : model.Subject.Trim();
+                    : form.Subject.Trim();
 
-                draft.Body = string.IsNullOrWhiteSpace(model.Body)
+                draft.Body = string.IsNullOrWhiteSpace(form.Body)
                     ? null
-                    : model.Body.Trim();
+                    : form.Body.Trim();
+
+                draft.CategoryId = form.CategoryId;
 
                 draft.UpdatedAt = DateTime.Now;
             }
@@ -466,20 +526,20 @@ namespace IdentiyMail.Web.Controllers
                 {
                     SenderId = userId,
 
-                    ReceiverMail = string.IsNullOrWhiteSpace(model.ReceiverMail)
+                    ReceiverMail = string.IsNullOrWhiteSpace(form.ReceiverMail)
                         ? null
-                        : model.ReceiverMail.Trim(),
+                        : form.ReceiverMail.Trim(),
 
-                    Subject = string.IsNullOrWhiteSpace(model.Subject)
+                    Subject = string.IsNullOrWhiteSpace(form.Subject)
                         ? null
-                        : model.Subject.Trim(),
+                        : form.Subject.Trim(),
 
-                    Body = string.IsNullOrWhiteSpace(model.Body)
+                    Body = string.IsNullOrWhiteSpace(form.Body)
                         ? null
-                        : model.Body,
+                        : form.Body,
 
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
+                    CategoryId = form.CategoryId,
+                    CreatedAt = DateTime.Now
                 };
 
                 _context.DraftMessages.Add(draft);
@@ -777,6 +837,18 @@ namespace IdentiyMail.Web.Controllers
                 .ToList();
         }
 
+        #endregion
+
+        #region Mesaj oluşturma ekran modeli
+        private async Task<ComposeMessageViewModel> BuildComposeModelAsync(int userId, SendMailDto? form = null)
+        {
+            return new ComposeMessageViewModel
+            {
+                Form = form ?? new SendMailDto(),
+
+                Categories = await _categoryService.GetOptionsAsync(userId)
+            };
+        }
         #endregion
     }
 }

@@ -1,0 +1,252 @@
+﻿@model CategoryManagementViewModel
+
+@{
+    ViewData["Title"] = "Kategoriler";
+}
+
+<section class="category-page">
+    <div class="category-page-header">
+        <div>
+            <span class="category-breadcrumb">
+                Ayarlar / Kategoriler
+            </span>
+
+            <h1>Kategoriler</h1>
+
+            <p>
+                Mesajlarınızı kişisel kategorilerle düzenleyin.
+            </p>
+        </div>
+
+        <button type="button"
+                class="category-primary-button"
+                id="createCategoryButton">
+
+            <span class="material-symbols-outlined">
+                add
+            </span>
+            Yeni Kategori
+        </button>
+    </div>
+
+
+    @if (TempData["CategorySuccess"] is not null)
+    {
+        <div class="mail-success-alert">
+            @TempData["CategorySuccess"]
+        </div>
+    }
+
+    @if (TempData["CategoryError"] is not null)
+    {
+        <div class="category-error-alert">
+            @TempData["CategoryError"]
+        </div>
+    }
+
+    <div class="category-info-banner">
+        <span class="material-symbols-outlined">
+            info
+        </span>
+
+        <div>
+            <strong>Önemli Bilgilendirme</strong>
+
+            <p>
+                Bir kategoriyi sildiğinizde mesajlar silinmez.
+                Yalnızca kategori etiketi kaldırılır.
+            </p>
+        </div>
+    </div>
+
+    <div class="category-workspace">
+        <div class="category-list-column">
+
+            <div class="category-list-header">
+                <div>
+                    <strong>Tanımlı Kategoriler</strong>
+
+                    <span>
+                        @Model.Categories.Count kategori
+                    </span>
+                </div>
+
+                <small>
+                    En çok kullanılan kategoriler üstte
+                </small>
+            </div>
+
+
+            @if (Model.Categories.Count == 0)
+            {
+                <div class="category-empty-state">
+                    <span class="material-symbols-outlined">
+                        label
+                    </span>
+
+                    <h2>Henüz kategoriniz yok</h2>
+
+                    <p>
+                        Mesajlarınızı düzenlemek için ilk kategorinizi oluşturun.
+                    </p>
+                </div>
+            }
+            else
+            {
+                <div class="category-list">
+                    @foreach (var item in Model.Categories)
+                    {
+                        <article class="category-row">
+                            <div class="category-row-main">
+
+                                <span class="category-color-dot"
+                                      style="background:@item.ColorHex">
+                                </span>
+
+                                <div class="category-row-info">
+                                    <div class="category-row-title">
+                                        <strong>
+                                            @item.Name
+                                        </strong>
+
+                                        <span>
+                                            @item.ColorHex
+                                        </span>
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(item.Description))
+                                    {
+                                        <p>@item.Description</p>
+                                    }
+                                </div>
+                            </div>
+
+
+                            <div class="category-row-actions">
+                                <span class="category-message-count">
+                                    <span class="material-symbols-outlined">
+                                        mail
+                                    </span>
+                                    @item.MessageCount mesaj
+                                </span>
+
+
+                                <button type="button"
+                                        class="category-icon-button edit-category-button"
+                                        title="Kategoriyi düzenle"
+                                        data-id="@item.Id"
+                                        data-name="@item.Name"
+                                        data-description="@item.Description"
+                                        data-color="@item.ColorHex">
+
+                                    <span class="material-symbols-outlined">
+                                        edit
+                                    </span>
+                                </button>
+
+                                <button type="button"
+                                        class="category-icon-button is-danger delete-category-button"
+                                        title="Kategoriyi sil"
+                                        data-id="@item.Id"
+                                        data-name="@item.Name">
+
+                                    <span class="material-symbols-outlined">
+                                        delete
+                                    </span>
+                                </button>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+        </div>
+
+        <aside class="category-summary">
+
+            <h2>Kategori Özeti</h2>
+
+            <div class="category-summary-stat">
+
+                <span>Toplam Kategori</span>
+
+                <strong>@Model.Categories.Count</strong>
+            </div>
+
+            <div class="category-summary-stat">
+                <span>Kategorilenmiş Mesaj</span>
+
+                <strong>@Model.TotalCategorizedMessages</strong>
+            </div>
+
+            <div class="category-summary-note">
+                <span class="material-symbols-outlined">
+                    check_circle
+                </span>
+
+                <p>
+                    Kategoriler yalnızca size özeldir.
+                    Aynı mesaj başka bir kullanıcı tarafından
+                    farklı bir kategoriye atanabilir.
+                </p>
+            </div>
+        </aside>
+    </div>
+    
+    <partial name="_CategoryFormModal" model="Model.Form" />
+
+    <div class="modal fade"
+         id="deleteCategoryModal"
+         tabindex="-1"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content category-delete-modal">
+
+                <form asp-controller="Category" asp-action="Delete" method="post">
+
+                    <input type="hidden" name="id" id="deleteCategoryId" />
+
+                    <div class="category-delete-body">
+                        <span class="category-delete-icon">
+
+                            <span class="material-symbols-outlined">
+                                warning
+                            </span>
+                        </span>
+
+                        <div>
+                            <h2>Kategoriyi Sil</h2>
+
+                            <p id="deleteCategoryText">
+                                Bu kategoriyi silmek istediğinize emin misiniz?
+                            </p>
+
+                            <small>
+                                Mesajlarınız silinmeyecektir.
+                            </small>
+                        </div>
+                    </div>
+
+
+                    <div class="category-modal-footer">
+                        <button type="button"
+                                class="category-secondary-button"
+                                data-bs-dismiss="modal">
+                            Vazgeç
+                        </button>
+
+                        <button type="submit"
+                                class="category-danger-button">
+                            Sil
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+@section Scripts {
+    <script src="~/js/category.js" asp-append-version="true"></script>
+}

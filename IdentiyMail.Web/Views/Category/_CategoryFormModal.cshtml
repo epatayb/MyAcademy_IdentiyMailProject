@@ -1,0 +1,168 @@
+﻿@model CategoryFormViewModel
+
+@{
+    var openModal = ViewData["OpenCategoryModal"] is true;
+}
+
+<div class="modal fade category-modal"
+     id="categoryModal"
+     tabindex="-1"
+     aria-hidden="true"
+     data-open="@(openModal ? "true" : "false")">
+
+     <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <form asp-controller="Category"
+                  asp-action="Save"
+                  method="post">
+
+                <input asp-for="Id" type="hidden" />
+
+                <div class="category-modal-header">
+
+                    <div class="category-modal-heading">
+
+                        <span class="category-modal-icon">
+                            <span class="material-symbols-outlined">
+                                new_label
+                            </span>
+                        </span>
+
+                        <div>
+                            <h2 id="categoryModalTitle">
+                                Yeni Kategori Oluştur
+                            </h2>
+
+                            <span>
+                                Mesajlarınızı düzenlemek için kategori oluşturun
+                            </span>
+                        </div>
+                    </div>
+
+                    <button type="button"
+                            class="category-modal-close"
+                            data-bs-dismiss="modal">
+
+                        <span class="material-symbols-outlined">
+                            close
+                        </span>
+                    </button>
+                </div>
+
+                <div class="category-modal-body">
+
+                    <div asp-validation-summary="ModelOnly" class="category-validation"></div>
+
+                    <div class="category-form-field">
+
+                        <label asp-for="Name">
+                            Kategori Adı
+                        </label>
+
+                        <input asp-for="Name" placeholder="Örn. İş, Projeler, Finans..." />
+
+                        <span asp-validation-for="Name" class="category-field-error"></span>
+                    </div>
+
+                    <div class="category-form-field">
+
+                        <label asp-for="Description">
+                            Açıklama
+                            <span>Opsiyonel</span>
+                        </label>
+
+                        <textarea asp-for="Description"
+                                  rows="3"
+                                  placeholder="Bu kategori ne için kullanılacak?"></textarea>
+
+                        <span asp-validation-for="Description" class="category-field-error"></span>
+                    </div>
+
+                    <div class="category-form-field">
+                        <label>
+                            Kategori Rengi
+                        </label>
+
+                        <input asp-for="ColorHex" type="hidden" />
+
+                        <div class="category-color-palette">
+
+                            <button type="button"
+                                    class="category-color-option"
+                                    data-color="#1D4ED8"
+                                    style="--category-color:#1D4ED8">
+                            </button>
+
+                            <button type="button"
+                                    class="category-color-option"
+                                    data-color="#00685F"
+                                    style="--category-color:#00685F">
+                            </button>
+
+                            <button type="button"
+                                    class="category-color-option"
+                                    data-color="#6B21A8"
+                                    style="--category-color:#6B21A8">
+                            </button>
+
+                            <button type="button"
+                                    class="category-color-option"
+                                    data-color="#C2410C"
+                                    style="--category-color:#C2410C">
+                            </button>
+
+                            <button type="button"
+                                    class="category-color-option"
+                                    data-color="#BA1A1A"
+                                    style="--category-color:#BA1A1A">
+                            </button>
+
+                            <button type="button"
+                                    class="category-color-option"
+                                    data-color="#B45309"
+                                    style="--category-color:#B45309">
+                            </button>
+
+                            <button type="button"
+                                    class="category-color-option"
+                                    data-color="#515F74"
+                                    style="--category-color:#515F74">
+                            </button>
+
+
+                            <label class="category-custom-color" title="Özel renk seç">
+                                <span class="material-symbols-outlined">
+                                    palette
+                                </span>
+
+                                <input type="color" id="categoryCustomColor" value="#1D4ED8" />
+                            </label>
+                        </div>
+
+                        <div class="category-selected-color">
+                            <span id="categorySelectedColorPreview"></span>
+
+                            <span id="categorySelectedColorText">
+                                #1D4ED8
+                            </span>
+                        </div>
+
+                        <span asp-validation-for="ColorHex" class="category-field-error"></span>
+                    </div>
+                </div>
+
+                <div class="category-modal-footer">
+
+                    <button type="button" class="category-secondary-button" data-bs-dismiss="modal">
+                        İptal
+                    </button>
+
+                    <button type="submit" class="category-primary-button">
+                        Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

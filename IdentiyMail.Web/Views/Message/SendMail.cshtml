@@ -1,4 +1,4 @@
-﻿@model SendMailDto
+﻿@model ComposeMessageViewModel
 
 @{
     ViewData["Title"] = "Yeni Mesaj";
@@ -8,8 +8,12 @@
     <div class="mail-compose-panel">
         <div class="mail-compose-header">
             <div>
-                <h1>Yeni Mesaj</h1>
-                <span>Yeni mesaj oluşturun</span>
+                <h1>
+                    @(Model.Form.DraftId.HasValue ? "Taslağı Düzenle" : "Yeni Mesaj")
+                </h1>
+                <span>
+                    @(Model.Form.DraftId.HasValue ? "Taslak mesajınızı düzenleyin" : "Yeni mesaj oluşturun")
+                </span>
             </div>
 
             <a asp-controller="Message"
@@ -28,37 +32,39 @@
               method="post"
               class="mail-compose-form">
 
-            <input asp-for="DraftId" type="hidden" />
+            <input asp-for="Form.DraftId" type="hidden" />
             <div asp-validation-summary="ModelOnly" class="mail-compose-validation"></div>
 
             <div class="mail-compose-field">
-                <label asp-for="ReceiverMail">Kime</label>
-                <input asp-for="ReceiverMail" type="email" placeholder="Alıcının email adresi" />
-                <span asp-validation-for="ReceiverMail" class="mail-compose-field-error"></span>
+                <label asp-for="Form.ReceiverMail">Kime</label>
+                <input asp-for="Form.ReceiverMail" type="email" placeholder="Alıcının email adresi" />
+                <span asp-validation-for="Form.ReceiverMail" class="mail-compose-field-error"></span>
             </div>
 
             <div class="mail-compose-field">
-
-                <label asp-for="Subject">
-                    Konu
-                </label>
-
-                <input asp-for="Subject"
-                       placeholder="Mesaj konusu" />
-
-                <span asp-validation-for="Subject"
-                      class="mail-compose-field-error">
-                </span>
-
+                <label asp-for="Form.Subject">Konu</label>
+                <input asp-for="Form.Subject" placeholder="Mesaj konusu" />
+                <span asp-validation-for="Form.Subject" class="mail-compose-field-error"></span>
             </div>
 
+            @* #region Kategori *@
+            <partial name="_CategorySelector"
+                     model="new CategorySelectorViewModel
+                     {
+                         InputName = &quot; Form.CategoryId & quot;,
+                         SelectedCategoryId = Model.Form.CategoryId,
+                         Categories = Model.Categories,
+                         Label = &quot; Kategori & quot;
+                     }" />
+            @* #endregion *@
+
             <div class="mail-compose-body">
-                <textarea asp-for="Body" 
+                <textarea asp-for="Form.Body"
                           placeholder="Mesajınızı yazın..."
                           autofocus>
                 </textarea>
 
-                <span asp-validation-for="Body" class="mail-compose-field-error"></span>
+                <span asp-validation-for="Form.Body" class="mail-compose-field-error"></span>
             </div>
 
             <div class="mail-compose-footer">
@@ -79,7 +85,7 @@
                         </span>
 
                         <span>
-                            @(Model?.DraftId.HasValue == true ? "Taslağı Güncelle" : "Taslak Olarak Kaydet")
+                            @(Model.Form.DraftId.HasValue ? "Taslağı Güncelle" : "Taslak Olarak Kaydet")
                         </span>
                 </button>
 

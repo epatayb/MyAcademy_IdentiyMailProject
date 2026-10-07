@@ -1,0 +1,31 @@
+﻿@model CategorySelectorViewModel
+
+<div class="category-selector">
+    <label class="category-selector-label">
+        @Model.Label
+    </label>
+
+    <div class="category-selector-control">
+        <span class="category-selector-dot"></span>
+
+        <select name="@Model.InputName" class="category-selector-select">
+            <option value="">
+                Kategori yok
+            </option>
+
+            @foreach (var category in Model.Categories)
+            {
+                <option value="@category.Id" 
+                        data-color="@category.ColorHex" 
+                        selected="@(Model.SelectedCategoryId == category.Id ? "selected" : null)">
+
+                        @category.Name
+                </option>
+            }
+        </select>
+
+        <span class="material-symbols-outlined">
+            expand_more
+        </span>
+    </div>
+</div>

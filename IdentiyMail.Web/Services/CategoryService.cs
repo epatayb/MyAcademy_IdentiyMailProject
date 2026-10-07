@@ -292,5 +292,14 @@ namespace IdentiyMail.Web.Services
         }
 
         #endregion
+
+        #region Kategori sahiplik kontrolü
+        public async Task<bool> IsOwnedByUserAsync(int userId, int categoryId)
+        {
+            return await _context.Categories
+                .AsNoTracking()
+                .AnyAsync(x => x.Id == categoryId && x.UserId == userId);
+        }
+        #endregion
     }
 }
