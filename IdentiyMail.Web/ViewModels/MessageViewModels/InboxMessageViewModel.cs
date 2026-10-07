@@ -1,4 +1,6 @@
-﻿namespace IdentiyMail.Web.ViewModels.MessageViewModels
+﻿using IdentiyMail.Web.ViewModels.CategoryViewModels;
+
+namespace IdentiyMail.Web.ViewModels.MessageViewModels
 {
     public class InboxMessageViewModel
     {
@@ -21,5 +23,7 @@
         public bool IsRead { get; set; }
 
         public bool IsImportant { get; set; }
+
+        public CategoryBadgeViewModel? Category { get; set; }
     }
 }

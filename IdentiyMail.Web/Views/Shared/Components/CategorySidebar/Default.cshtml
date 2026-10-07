@@ -1,0 +1,64 @@
+﻿@using IdentiyMail.Web.DTOs.CategoryDtos
+@model List<CategoryListItemDto>
+
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+    var currentIdText = ViewContext.RouteData.Values["id"]?.ToString();
+
+    int.TryParse(currentIdText, out var currentCategoryId);
+}
+
+<div class="mail-sidebar-category-section">
+    <div class="mail-sidebar-category-header">
+        <span>
+            Kategoriler
+        </span>
+
+        <a asp-controller="Category"
+           asp-action="Index"
+           title="Kategorileri yönet">
+            Yönet
+        </a>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="mail-sidebar-category-empty">
+            <span class="material-symbols-outlined">
+                label
+            </span>
+
+            <span>
+                Kategori yok
+            </span>
+        </div>
+    }
+    else
+    {
+        <div class="mail-sidebar-category-list">
+            @foreach (var category in Model)
+            {
+                var isActive = string.Equals(currentAction, "ByCategory", StringComparison.OrdinalIgnoreCase) && currentCategoryId == category.Id;
+
+                <a asp-controller="Message"
+                   asp-action="ByCategory"
+                   asp-route-id="@category.Id"
+                   class="mail-sidebar-category-item @(isActive ? "is-active" : "")">
+
+                    <span class="mail-sidebar-category-dot"
+                          style="@($"background-color: {category.ColorHex};")">
+                    </span>
+
+                    <span class="mail-sidebar-category-name">
+                        @category.Name
+                    </span>
+
+                    <span class="mail-sidebar-category-count">
+                        @category.MessageCount
+                    </span>
+                </a>
+            }
+        </div>
+    }
+</div>

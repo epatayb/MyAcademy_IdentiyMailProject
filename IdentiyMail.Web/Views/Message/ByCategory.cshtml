@@ -1,0 +1,121 @@
+﻿@using System.Globalization
+@model CategoryMessagesViewModel
+
+@{
+    ViewData["Title"] = Model.CategoryName;
+    var trCulture = new CultureInfo("tr-TR");
+}
+
+<section class="mail-inbox-page">
+    <div class="mail-inbox-panel">
+        <div class="mail-inbox-header">
+            <div class="mail-inbox-heading">
+                <div class="mail-inbox-title-row">
+                    <span class="category-page-title-dot" style="background-color:@Model.ColorHex"></span>
+
+                    <h1>@Model.CategoryName</h1>
+
+                    <span class="mail-unread-summary">
+                        @Model.Messages.Count mesaj
+                    </span>
+                </div>
+
+                <span class="mail-inbox-total">
+                    Bu kategoriye ait gelen ve gönderilen mesajlar
+                </span>
+            </div>
+        </div>
+
+        @if (Model.Messages.Count == 0)
+        {
+            <div class="mail-empty-state">
+                <span class="material-symbols-outlined">label</span>
+
+                <h2>Bu kategoride mesaj yok</h2>
+
+                <p>
+                    Bir mesaja @Model.CategoryName kategorisini
+                    verdiğinizde burada görüntülenecek.
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="mail-message-list">
+                @foreach (var item in Model.Messages)
+                {
+                    <a asp-controller="Message"
+                       asp-action="@(item.IsIncoming ? "MailDetail" : "SentMailDetail")"
+                       asp-route-id="@item.Id"
+                       class="category-filter-message-row">
+
+                        @if (!string.IsNullOrWhiteSpace(item.ContactProfileImageUrl))
+                        {
+                            <img src="@item.ContactProfileImageUrl"
+                                 alt="@item.ContactFullName"
+                                 class="mail-message-avatar" />
+                        }
+                        else
+                        {
+                            <span class="mail-message-avatar mail-message-initials">
+                                @item.ContactInitials
+                            </span>
+                        }
+
+                        <div class="mail-message-sender">
+                            <span class="mail-message-sender-name">
+                                @item.ContactFullName
+                            </span>
+
+                            <span class="mail-message-sender-email">
+                                @item.ContactEmail
+                            </span>
+                        </div>
+
+
+                        <div class="mail-message-content">
+                            <span class="mail-message-subject">
+                                @item.Subject
+                            </span>
+
+                            <span class="mail-message-preview">
+                                — @item.Preview
+                            </span>
+                        </div>
+
+
+                        <div class="category-filter-meta">
+                            <span class="category-direction-badge">
+                                <span class="material-symbols-outlined">
+                                    @(item.IsIncoming ? "call_received" : "call_made")
+                                </span>
+
+                                @(item.IsIncoming ? "Gelen" : "Gönderilen")
+                            </span>
+
+                            <time class="mail-message-date" datetime="@item.SendDate.ToString("O")">
+
+                                @if (item.SendDate.Date == DateTime.Today)
+                                {
+                                    @item.SendDate.ToString("HH:mm")
+                                }
+                                else if (item.SendDate.Date == DateTime.Today.AddDays(-1))
+                                {
+                                    <text>Dün</text>
+                                }
+                                else if (item.SendDate.Year == DateTime.Today.Year)
+                                {
+                                    @item.SendDate.ToString("dd MMM", trCulture)
+                                }
+                                else
+                                {
+                                    @item.SendDate.ToString("dd MMM yyyy", trCulture)
+                                }
+                            </time>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</section>

@@ -161,6 +161,7 @@
             }
         </div>
 
+        @* #region Kategori özeti ve dağılım *@
         <aside class="category-summary">
 
             <h2>Kategori Özeti</h2>
@@ -178,6 +179,83 @@
                 <strong>@Model.TotalCategorizedMessages</strong>
             </div>
 
+            <div class="category-distribution">
+
+                <div class="category-distribution-header">
+
+                    <strong>
+                        Kategori Dağılımı
+                    </strong>
+
+                    <span>
+                        Aktif mesajlar
+                    </span>
+
+                </div>
+
+
+                @if (Model.Distribution.Count == 0)
+                {
+                    <div class="category-distribution-empty">
+
+                        <span class="material-symbols-outlined">
+                            bar_chart
+                        </span>
+
+                        <span>
+                            Henüz kategorilenmiş mesaj yok
+                        </span>
+
+                    </div>
+                }
+                else
+                {
+                    <div class="category-distribution-list">
+
+                        @foreach (var item in Model.Distribution)
+                        {
+                            <div class="category-distribution-item">
+
+                                <div class="category-distribution-info">
+
+                                    <div class="category-distribution-name">
+
+                                        <span class="category-distribution-dot" style="@($"background-color: {item.ColorHex};")"></span>
+
+                                        <span>
+                                            @item.Name
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="category-distribution-values">
+
+                                        <span>
+                                            @item.MessageCount mesaj
+                                        </span>
+
+                                        <strong>
+                                            %@item.Percentage.ToString("0.#")
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="category-distribution-track">
+
+                                    <span class="category-distribution-bar"
+                                          style="@($"--distribution-width: {item.Percentage.ToString(System.Globalization.CultureInfo.InvariantCulture)}%; --distribution-color: {item.ColorHex};")">
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
             <div class="category-summary-note">
                 <span class="material-symbols-outlined">
                     check_circle
@@ -190,6 +268,7 @@
                 </p>
             </div>
         </aside>
+        @* #endregion *@
     </div>
     
     <partial name="_CategoryFormModal" model="Model.Form" />

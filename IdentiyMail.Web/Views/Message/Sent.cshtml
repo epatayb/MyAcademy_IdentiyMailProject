@@ -81,9 +81,16 @@
                             </div>
 
                             <div class="mail-message-content">
-                                <span class="mail-message-subject">
-                                    @item.Subject
-                                </span>
+                                <div class="mail-message-subject-line">
+                                    <span class="mail-message-subject">
+                                        @item.Subject
+                                    </span>
+
+                                    @if (item.Category is not null)
+                                    {
+                                        <partial name="_CategoryBadge" model="item.Category" />
+                                    }
+                                </div>
 
                                 <span class="mail-message-preview">
                                     - @item.Preview

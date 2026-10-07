@@ -1,24 +1,40 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
-
     document
-        .querySelectorAll(".category-selector")
+        .querySelectorAll(".category-compose-selector")
         .forEach(selector => {
 
-            const select = selector.querySelector(".category-selector-select");
-            const dot = selector.querySelector(".category-selector-dot");
+            const valueInput = selector.querySelector(".category-compose-value");
 
-            if (!select || !dot) {
-                return;
-            }
+            const selectedDot = selector.querySelector(".category-compose-dot");
 
+            const selectedName = selector.querySelector(".category-compose-name");
 
-            function updateColor() {
-                const option = select.options[select.selectedIndex];
-                const color = option?.dataset?.color;
-                dot.style.backgroundColor = color || "#c2c8d2";
-            }
+            const options = selector.querySelectorAll(".category-compose-option");
 
-            select.addEventListener("change", updateColor);
-            updateColor();
+            options.forEach(option => {
+
+                option.addEventListener(
+                    "click",
+                    function () {
+
+                        const categoryId = option.dataset.categoryId ?? "";
+
+                        const categoryName = option.dataset.categoryName ?? "Kategori Yok";
+
+                        const categoryColor = option.dataset.categoryColor ?? "#98A2B3";
+
+                        valueInput.value = categoryId;
+
+                        selectedName.textContent = categoryName;
+
+                        selectedDot.style.backgroundColor = categoryColor;
+
+                        options.forEach(x =>
+                            x.classList.remove("is-selected")
+                        );
+
+                        option.classList.add("is-selected");
+                    });
+            });
         });
 });

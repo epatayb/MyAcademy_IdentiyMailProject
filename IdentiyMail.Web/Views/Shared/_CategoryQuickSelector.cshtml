@@ -1,0 +1,130 @@
+﻿@model CategoryQuickSelectorViewModel
+
+@{
+    var selectedCategory = Model.Categories.FirstOrDefault(x => x.Id == Model.SelectedCategoryId);
+    var selectedName = selectedCategory?.Name ?? "Kategori Yok";
+    var selectedColor = selectedCategory?.ColorHex ?? "#98A2B3";
+}
+
+<div class="category-quick-selector">
+
+    <form asp-controller="Message"
+          asp-action="ChangeCategory"
+          method="post"
+          class="category-quick-form">
+
+        <input type="hidden"
+               name="id"
+               value="@Model.MessageId" />
+
+        <input type="hidden"
+               name="categoryId"
+               value="@Model.SelectedCategoryId"
+               class="category-quick-value" />
+
+        <input type="hidden"
+               name="returnUrl"
+               value="@Model.ReturnUrl" />
+
+        <div class="dropdown">
+
+            <button type="button"
+                    class="category-quick-button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+
+                <span class="category-quick-selected">
+
+                    <span class="category-quick-dot"
+                          style="@($"background-color: {selectedColor};")">
+                    </span>
+
+                    <span class="category-quick-name">
+                        @selectedName
+                    </span>
+
+                </span>
+
+                <span class="material-symbols-outlined">
+                    expand_more
+                </span>
+
+            </button>
+
+
+            <div class="dropdown-menu category-quick-menu">
+
+                <div class="category-quick-menu-title">
+                    Kategori
+                </div>
+
+
+                <button type="button"
+                        class="dropdown-item category-quick-option @(Model.SelectedCategoryId is null ? "is-selected" : "")"
+                        data-category-id="">
+
+                    <span class="category-quick-option-dot is-empty"></span>
+
+                    <span>
+                        Kategori Yok
+                    </span>
+
+                    @if (Model.SelectedCategoryId is null)
+                    {
+                        <span class="material-symbols-outlined category-quick-check">
+                            check
+                        </span>
+                    }
+
+                </button>
+
+
+                @foreach (var category in Model.Categories)
+                {
+                    var isSelected = Model.SelectedCategoryId == category.Id;
+
+                    <button type="button"
+                            class="dropdown-item category-quick-option @(isSelected ? "is-selected" : "")"
+                            data-category-id="@category.Id">
+
+                        <span class="category-quick-option-dot"
+                              style="@($"background-color: {category.ColorHex};")">
+                        </span>
+
+                        <span>
+                            @category.Name
+                        </span>
+
+                        @if (isSelected)
+                        {
+                            <span class="material-symbols-outlined category-quick-check">
+                                check
+                            </span>
+                        }
+
+                    </button>
+                }
+
+
+                <div class="category-quick-menu-divider"></div>
+
+
+                <a asp-controller="Category"
+                   asp-action="Index"
+                   class="dropdown-item category-quick-manage">
+
+                    <span class="material-symbols-outlined">
+                        settings
+                    </span>
+
+                    Kategorileri Yönet
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>

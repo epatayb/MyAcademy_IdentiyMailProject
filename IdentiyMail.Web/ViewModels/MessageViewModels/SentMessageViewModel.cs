@@ -1,4 +1,6 @@
-﻿namespace IdentiyMail.Web.ViewModels.MessageViewModels
+﻿using IdentiyMail.Web.ViewModels.CategoryViewModels;
+
+namespace IdentiyMail.Web.ViewModels.MessageViewModels
 {
     public class SentMessageViewModel
     {
@@ -19,5 +21,7 @@
         public DateTime SendDate { get; set; }
 
         public bool IsRead { get; set; }
+
+        public CategoryBadgeViewModel? Category { get; set; }        
     }
 }

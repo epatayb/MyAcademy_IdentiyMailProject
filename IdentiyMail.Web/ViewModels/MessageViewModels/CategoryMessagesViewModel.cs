@@ -1,8 +1,17 @@
-﻿using IdentiyMail.Web.DTOs.CategoryDtos;
-
-namespace IdentiyMail.Web.ViewModels.MessageViewModels
+﻿namespace IdentiyMail.Web.ViewModels.MessageViewModels
 {
-    public class MessageDetailViewModel
+    public class CategoryMessagesViewModel
+    {
+        public int CategoryId { get; set; }
+
+        public string CategoryName { get; set; } = string.Empty;
+
+        public string ColorHex { get; set; } = string.Empty;
+
+        public List<CategoryMessageItemViewModel> Messages { get; set; } = new();
+    }
+
+    public class CategoryMessageItemViewModel
     {
         public int Id { get; set; }
 
@@ -16,18 +25,12 @@ namespace IdentiyMail.Web.ViewModels.MessageViewModels
 
         public string Subject { get; set; } = string.Empty;
 
-        public string Body { get; set; } = string.Empty;
+        public string Preview { get; set; } = string.Empty;
 
         public DateTime SendDate { get; set; }
 
         public bool IsIncoming { get; set; }
 
         public bool IsRead { get; set; }
-
-        public bool IsImportant { get; set; }
-
-        public int? CategoryId { get; set; }
-
-        public List<CategoryOptionDto> Categories { get; set; } = new();
     }
 }

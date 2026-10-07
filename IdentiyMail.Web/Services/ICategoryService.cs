@@ -20,5 +20,7 @@ namespace IdentiyMail.Web.Services
         Task<CategoryServiceResult> AssignToMessageAsync(int userId, int messageId, int? categoryId);
 
         Task<bool> IsOwnedByUserAsync(int userId, int categoryId);
+
+        Task<CategoryOptionDto?> GetByIdAsync(int userId, int categoryId);
     }
 }

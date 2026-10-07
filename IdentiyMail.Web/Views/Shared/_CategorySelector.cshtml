@@ -1,31 +1,98 @@
 ﻿@model CategorySelectorViewModel
 
-<div class="category-selector">
-    <label class="category-selector-label">
+@{
+    var selectedCategory = Model.Categories.FirstOrDefault(x => x.Id == Model.SelectedCategoryId);
+    var selectedName = selectedCategory?.Name ?? "Kategori yok";
+    var selectedColor = selectedCategory?.ColorHex ?? "#98A2B3";
+}
+
+<div class="category-compose-selector">
+    <label class="category-compose-label">
         @Model.Label
     </label>
 
-    <div class="category-selector-control">
-        <span class="category-selector-dot"></span>
+    <input type="hidden"
+           name="@Model.InputName"
+           value="@Model.SelectedCategoryId"
+           class="category-compose-value" />
 
-        <select name="@Model.InputName" class="category-selector-select">
-            <option value="">
-                Kategori yok
-            </option>
+    <div class="dropdown category-compose-dropdown">
+        <button type="button"
+                class="category-compose-button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false">
+
+            <span class="category-compose-selected">
+                <span class="category-compose-dot" style="@($"background-color: {selectedColor};")"></span>
+
+                <span class="category-compose-name">
+                    @selectedName
+                </span>
+            </span>
+
+            <span class="material-symbols-outlined">
+                expand_more
+            </span>
+        </button>
+
+        <div class="dropdown-menu category-compose-menu">
+            <div class="category-compose-menu-title">
+                Kategori Seç
+            </div>
+
+
+            <button type="button"
+                    class="dropdown-item category-compose-option @(Model.SelectedCategoryId is null ? "is-selected" : "")"
+                    data-category-id=""
+                    data-category-name="Kategori Yok"
+                    data-category-color="#98A2B3">
+
+                <span class="category-compose-option-dot is-empty"></span>
+
+                <span class="category-compose-option-name">
+                    Kategori Yok
+                </span>
+
+                <span class="material-symbols-outlined category-compose-check">
+                    check
+                </span>
+            </button>
+
 
             @foreach (var category in Model.Categories)
             {
-                <option value="@category.Id" 
-                        data-color="@category.ColorHex" 
-                        selected="@(Model.SelectedCategoryId == category.Id ? "selected" : null)">
+                var isSelected = Model.SelectedCategoryId == category.Id;
 
+                <button type="button"
+                        class="dropdown-item category-compose-option @(isSelected ? "is-selected" : "")"
+                        data-category-id="@category.Id"
+                        data-category-name="@category.Name"
+                        data-category-color="@category.ColorHex">
+
+                    <span class="category-compose-option-dot" style="@($"background-color: {category.ColorHex};")"></span>
+
+                    <span class="category-compose-option-name">
                         @category.Name
-                </option>
-            }
-        </select>
+                    </span>
 
-        <span class="material-symbols-outlined">
-            expand_more
-        </span>
+                    <span class="material-symbols-outlined category-compose-check">
+                        check
+                    </span>
+                </button>
+            }
+
+            <div class="category-compose-divider"></div>
+
+            <a asp-controller="Category"
+               asp-action="Index"
+               class="dropdown-item category-compose-manage">
+
+                <span class="material-symbols-outlined">
+                    settings
+                </span>
+
+                Kategorileri Yönet
+            </a>
+        </div>
     </div>
 </div>

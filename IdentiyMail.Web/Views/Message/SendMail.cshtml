@@ -2,6 +2,14 @@
 
 @{
     ViewData["Title"] = "Yeni Mesaj";
+
+    var categorySelectorModel = new CategorySelectorViewModel
+    {
+        InputName = "Form.CategoryId",
+        SelectedCategoryId = Model.Form.CategoryId,
+        Categories = Model.Categories,
+        Label = "Kategori"
+    };
 }
 
 <section class="mail-compose-page">
@@ -49,13 +57,7 @@
 
             @* #region Kategori *@
             <partial name="_CategorySelector"
-                     model="new CategorySelectorViewModel
-                     {
-                         InputName = &quot; Form.CategoryId & quot;,
-                         SelectedCategoryId = Model.Form.CategoryId,
-                         Categories = Model.Categories,
-                         Label = &quot; Kategori & quot;
-                     }" />
+                     model="categorySelectorModel" />
             @* #endregion *@
 
             <div class="mail-compose-body">

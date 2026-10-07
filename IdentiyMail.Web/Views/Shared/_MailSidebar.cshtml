@@ -113,6 +113,10 @@
     </nav>
     @* #endregion *@
 
+    @* #region Kategoriler *@
+    @await Component.InvokeAsync("CategorySidebar")
+    @* #endregion *@
+
     @* #region Hesap işlemleri *@
     <div class="mail-sidebar-footer">
         <a asp-controller="Account"

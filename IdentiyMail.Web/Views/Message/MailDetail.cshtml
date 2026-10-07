@@ -4,6 +4,14 @@
 @{
     ViewData["Title"] = "Mesaj Detay";
     var trCulture = new CultureInfo("tr-TR");
+
+    var categoryQuickSelector = new CategoryQuickSelectorViewModel
+    {
+        MessageId = Model.Id,
+        SelectedCategoryId = Model.CategoryId,
+        Categories = Model.Categories,
+        ReturnUrl = $"{Context.Request.Path}{Context.Request.QueryString}"
+    };
 }
 
 <section class="mail-detail-page">
@@ -57,8 +65,10 @@
             </div>
         </div>
 
-        <div class="mail-detail-heading">
+        <div class="mail-detail-heading mail-detail-heading-with-category">
             <h1>@Model.Subject</h1>
+
+            <partial name="_CategoryQuickSelector" model="categoryQuickSelector" />
         </div>
 
         <div class="mail-detail-contact">

@@ -2,6 +2,7 @@
 using IdentiyMail.Web.DTOs.UserMessageDtos;
 using IdentiyMail.Web.Entities;
 using IdentiyMail.Web.Services;
+using IdentiyMail.Web.ViewModels.CategoryViewModels;
 using IdentiyMail.Web.ViewModels.MessageViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -48,7 +49,7 @@ namespace IdentiyMail.Web.Controllers
 
             #endregion
 
-            var messageViewModels = await GetInboxMessageItemsAsync(filteredQuery);
+            var messageViewModels = await GetInboxMessageItemsAsync(filteredQuery, userId);
 
             #region Gelen kutusu ekran modelini hazırlama
 
@@ -91,7 +92,7 @@ namespace IdentiyMail.Web.Controllers
                 return View(pageModel);
             }
 
-            if (model.Form.CategoryId.HasValue)
+            if (form.CategoryId.HasValue)
             {
                 var categoryIsValid = await _categoryService.IsOwnedByUserAsync(senderId, form.CategoryId.Value);
 
@@ -183,6 +184,12 @@ namespace IdentiyMail.Web.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            var categoryId = await _categoryService
+                .GetMessageCategoryIdAsync(userId, message.Id);
+
+            var categories = await _categoryService
+                .GetOptionsAsync(userId);
+
             var model = new MessageDetailViewModel
             {
                 Id = message.Id,
@@ -195,7 +202,9 @@ namespace IdentiyMail.Web.Controllers
                 SendDate = message.SendDate,
                 IsIncoming = true,
                 IsRead = message.IsRead,
-                IsImportant = message.IsImportant
+                IsImportant = message.IsImportant,
+                CategoryId = categoryId,
+                Categories = categories
             };
 
             return View(model);
@@ -222,7 +231,16 @@ namespace IdentiyMail.Web.Controllers
                     x.Subject,
                     x.Body,
                     x.SendDate,
-                    x.IsRead
+                    x.IsRead,
+                    CategoryName = x.CategoryAssignments
+                        .Where(a => a.UserId == userId)
+                        .Select(a => a.Category.Name)
+                        .FirstOrDefault(),
+
+                    CategoryColor = x.CategoryAssignments
+                        .Where(a => a.UserId == userId)
+                        .Select(a => a.Category.ColorHex)
+                        .FirstOrDefault()
                 })
                 .ToListAsync();
 
@@ -238,6 +256,13 @@ namespace IdentiyMail.Web.Controllers
                     Preview = CreateMessagePreview(x.Body),
                     SendDate = x.SendDate,
                     IsRead = x.IsRead,
+                    Category = string.IsNullOrWhiteSpace(x.CategoryName)
+                        ? null
+                        : new CategoryBadgeViewModel
+                        {
+                            Name = x.CategoryName,                            
+                            ColorHex = x.CategoryColor ?? "#667085"
+                        }
                 })
                 .ToList();
 
@@ -261,6 +286,12 @@ namespace IdentiyMail.Web.Controllers
                 return NotFound();
             }
 
+            var categoryId = await _categoryService
+                .GetMessageCategoryIdAsync(userId, message.Id);
+
+            var categories = await _categoryService
+                .GetOptionsAsync(userId);
+
             var model = new MessageDetailViewModel
             {
                 Id = message.Id,
@@ -273,6 +304,8 @@ namespace IdentiyMail.Web.Controllers
                 SendDate = message.SendDate,
                 IsIncoming = false,
                 IsRead = message.IsRead,
+                CategoryId = categoryId,
+                Categories = categories
             };
 
             return View(model);
@@ -494,7 +527,7 @@ namespace IdentiyMail.Web.Controllers
                 }
             }
 
-            if(form.DraftId.HasValue)
+            if (form.DraftId.HasValue)
             {
                 var draft = await _context.DraftMessages
                     .FirstOrDefaultAsync(x => x.Id == form.DraftId.Value && x.SenderId == userId);
@@ -536,10 +569,11 @@ namespace IdentiyMail.Web.Controllers
 
                     Body = string.IsNullOrWhiteSpace(form.Body)
                         ? null
-                        : form.Body,
+                        : form.Body.Trim(),
 
                     CategoryId = form.CategoryId,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,                    
                 };
 
                 _context.DraftMessages.Add(draft);
@@ -613,7 +647,7 @@ namespace IdentiyMail.Web.Controllers
             var query = _context.UserMessages
                 .Where(x => x.ReceiverId == userId && x.IsImportant && !x.IsDeletedByReceiver);
 
-            var model = await GetInboxMessageItemsAsync(query);
+            var model = await GetInboxMessageItemsAsync(query, userId);
 
             return View(model);
         }
@@ -754,6 +788,134 @@ namespace IdentiyMail.Web.Controllers
         }
         #endregion
 
+        #region Mesaj kategorisi değiştirme
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeCategory(int id, int? categoryId, string? returnUrl)
+        {
+            var userId = GetCurrentUserId();
+
+            var result = await _categoryService.AssignToMessageAsync(userId, id, categoryId);
+
+            if (!result.Success)
+            {
+                TempData["CategoryError"] = result.ErrorMessage ?? "Kategori değiştirilemedi.";
+            }
+            else
+            {
+                TempData["CategorySuccess"] = categoryId.HasValue ? "Mesaj kategorisi güncellendi." : "Mesaj kategorisi kaldırıldı.";
+            }
+
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        #endregion
+
+        #region Kategoriye göre mesajları listeleme
+        [HttpGet]
+        public async Task<IActionResult> ByCategory(int id)
+        {
+            var userId = GetCurrentUserId();
+
+            var category = await _categoryService.GetByIdAsync(userId, id);
+
+            if (category is null)
+            {
+                return NotFound();
+            }
+
+            var messages = await _context.MessageCategoryAssignments
+                .AsNoTracking()
+                .Where(x =>
+                    x.UserId == userId &&
+                    x.CategoryId == id &&
+                    (
+                        (
+                            x.Message.SenderId == userId &&
+                            !x.Message.IsDeletedBySender &&
+                            !x.Message.IsPermanentlyDeletedBySender
+                        )
+                        ||
+                        (
+                            x.Message.ReceiverId == userId &&
+                            !x.Message.IsDeletedByReceiver &&
+                            !x.Message.IsPermanentlyDeletedByReceiver
+                        )
+                    ))
+                .OrderByDescending(x => x.Message.SendDate)
+                .Select(x => new
+                {
+                    x.Message.Id,
+                    x.Message.Subject,
+                    x.Message.Body,
+                    x.Message.SendDate,
+                    x.Message.IsRead,
+                    x.Message.SenderId,
+                    x.Message.ReceiverId,
+
+                    SenderFirstName = x.Message.Sender.FirstName,
+                    SenderLastName = x.Message.Sender.LastName,
+                    SenderEmail = x.Message.Sender.Email,
+                    SenderProfileImageUrl = x.Message.Sender.ProfileImageUrl,
+
+                    ReceiverFirstName = x.Message.Receiver.FirstName,
+                    ReceiverLastName = x.Message.Receiver.LastName,
+                    ReceiverEmail = x.Message.Receiver.Email,
+                    ReceiverProfileImageUrl = x.Message.Receiver.ProfileImageUrl,
+                })
+                .ToListAsync();
+
+            var messageItems = messages
+                .Select(x =>
+                {
+                    var isIncoming = x.ReceiverId == userId;
+
+                    var firstName = isIncoming
+                        ? x.SenderFirstName
+                        : x.ReceiverFirstName;
+
+                    var lastName = isIncoming
+                        ? x.SenderLastName
+                        : x.ReceiverLastName;
+
+                    return new CategoryMessageItemViewModel
+                    {
+                        Id = x.Id,
+                        ContactFullName = $"{firstName}{lastName}".Trim(),
+                        ContactEmail = isIncoming
+                            ? x.SenderEmail ?? string.Empty
+                            : x.ReceiverEmail ?? string.Empty,
+                        ContactProfileImageUrl = isIncoming
+                            ? x.SenderProfileImageUrl
+                            : x.ReceiverProfileImageUrl,
+                        ContactInitials = CreateInitials(firstName, lastName),
+                        Subject = x.Subject,
+                        Preview = CreateMessagePreview(x.Body),
+                        SendDate = x.SendDate,
+                        IsIncoming = isIncoming,
+                        IsRead = x.IsRead,
+                    };
+                })
+                .ToList();
+
+            var model = new CategoryMessagesViewModel
+            {
+                CategoryId = category.Id,
+                CategoryName = category.Name,
+                ColorHex = category.ColorHex,
+                Messages = messageItems
+            };
+
+            return View(model);
+        }
+        #endregion
+
         #region Giriş yapan kullanıcı bilgileri
         private int GetCurrentUserId()
         {
@@ -798,7 +960,7 @@ namespace IdentiyMail.Web.Controllers
                 : $"{normalizedBody[..maxLength]}...";
         }
 
-        private async Task<List<InboxMessageViewModel>> GetInboxMessageItemsAsync(IQueryable<UserMessage> query)
+        private async Task<List<InboxMessageViewModel>> GetInboxMessageItemsAsync(IQueryable<UserMessage> query, int userId)
         {
             var messages = await query
                 .AsNoTracking()
@@ -816,7 +978,17 @@ namespace IdentiyMail.Web.Controllers
                     x.Body,
                     x.SendDate,
                     x.IsImportant,
-                    x.IsRead
+                    x.IsRead,
+
+                    CategoryName = x.CategoryAssignments
+                        .Where(x => x.UserId == userId)
+                        .Select(x => x.Category.Name)
+                        .FirstOrDefault(),
+
+                    CategoryColor = x.CategoryAssignments
+                        .Where(x => x.UserId == userId)
+                        .Select(x => x.Category.ColorHex)
+                        .FirstOrDefault(),
                 })
                 .ToListAsync();
 
@@ -832,7 +1004,15 @@ namespace IdentiyMail.Web.Controllers
                     Preview = CreateMessagePreview(x.Body),
                     SendDate = x.SendDate,
                     IsRead = x.IsRead,
-                    IsImportant = x.IsImportant
+                    IsImportant = x.IsImportant,
+                    Category = string.IsNullOrWhiteSpace(x.CategoryName)
+                        ? null
+                        : new CategoryBadgeViewModel
+                        {
+                            Name = x.CategoryName,
+
+                            ColorHex = x.CategoryColor ?? "#667085"
+                        }
                 })
                 .ToList();
         }

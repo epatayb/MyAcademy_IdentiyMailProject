@@ -301,5 +301,21 @@ namespace IdentiyMail.Web.Services
                 .AnyAsync(x => x.Id == categoryId && x.UserId == userId);
         }
         #endregion
+
+        #region Kullanıcıya ait kategori getirme
+        public async Task<CategoryOptionDto?> GetByIdAsync(int userId, int categoryId)
+        {
+            return await _context.Categories
+                .AsNoTracking()
+                .Where(x => x.Id == categoryId && x.UserId == userId)
+                .Select(x => new CategoryOptionDto
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    ColorHex = x.ColorHex,
+                })
+                .FirstOrDefaultAsync();
+        }
+        #endregion
     }
 }
