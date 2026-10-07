@@ -887,7 +887,7 @@ namespace IdentiyMail.Web.Controllers
                     return new CategoryMessageItemViewModel
                     {
                         Id = x.Id,
-                        ContactFullName = $"{firstName}{lastName}".Trim(),
+                        ContactFullName = $"{firstName} {lastName}".Trim(),
                         ContactEmail = isIncoming
                             ? x.SenderEmail ?? string.Empty
                             : x.ReceiverEmail ?? string.Empty,
