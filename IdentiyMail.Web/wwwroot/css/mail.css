@@ -2101,3 +2101,99 @@ body {
 /* #endregion */
 
 /* #endregion */
+
+/* #region Arama filtreleri */
+
+.mail-search-filters {
+    margin: 0 16px 12px;
+    padding: 12px;
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    border: 1px solid var(--mail-border);
+    border-radius: var(--mail-radius-md);
+    background: var(--mail-surface-soft);
+}
+
+.mail-search-filter-group {
+    min-width: 130px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+    .mail-search-filter-group label {
+        color: var(--mail-text-muted);
+        font-size: 9px;
+        font-weight: 600;
+    }
+
+    .mail-search-filter-group select {
+        height: 34px;
+        padding: 0 30px 0 9px;
+        border: 1px solid var(--mail-border);
+        border-radius: 7px;
+        outline: 0;
+        background: var(--mail-surface);
+        color: var(--mail-text);
+        font-size: 11px;
+    }
+
+        .mail-search-filter-group select:focus {
+            border-color: #b5c6ef;
+        }
+
+.mail-search-filter-button {
+    height: 34px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 0;
+    border-radius: 7px;
+    background: var(--mail-primary);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+    .mail-search-filter-button
+    .material-symbols-outlined {
+        font-size: 15px;
+    }
+
+.mail-search-filter-clear {
+    height: 34px;
+    padding: 0 9px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--mail-text-muted);
+    text-decoration: none;
+    font-size: 10px;
+}
+
+    .mail-search-filter-clear:hover {
+        color: var(--mail-primary);
+    }
+
+
+@media (max-width: 768px) {
+
+    .mail-search-filters {
+        margin: 0 10px 10px;
+        align-items: stretch;
+    }
+
+    .mail-search-filter-group {
+        width: calc(50% - 5px);
+        min-width: 0;
+    }
+
+    .mail-search-filter-button {
+        flex: 1;
+    }
+}
+
+/* #endregion */

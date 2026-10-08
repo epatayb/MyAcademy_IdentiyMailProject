@@ -1,10 +1,21 @@
 ﻿using IdentiyMail.Web.ViewModels.CategoryViewModels;
+using IdentiyMail.Web.DTOs.CategoryDtos;
 
 namespace IdentiyMail.Web.ViewModels.MessageViewModels
 {
     public class MessageSearchViewModel
     {
         public string Query { get; set; } = string.Empty;
+
+        public string Scope { get; set; } = "all";
+
+        public string Status { get; set; } = "all";
+
+        public string Sort { get; set; } = "newest";
+
+        public int? CategoryId { get; set; }
+
+        public List<CategoryOptionDto> Categories { get; set; } = new();
 
         public List<MessageSearchItemViewModel> Messages { get; set; } = new();
     }
@@ -28,6 +39,8 @@ namespace IdentiyMail.Web.ViewModels.MessageViewModels
         public DateTime SendDate { get; set; }
 
         public bool IsIncoming { get; set; }
+
+        public bool IsRead { get; set; }
 
         public CategoryBadgeViewModel? Category { get; set; }
     }

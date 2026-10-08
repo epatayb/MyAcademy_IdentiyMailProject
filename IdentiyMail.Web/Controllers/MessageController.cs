@@ -67,25 +67,65 @@ namespace IdentiyMail.Web.Controllers
         }
         #endregion
 
-        #region Mesaj Arama
+        #region Mesaj Arama ve filtreleme
         [HttpGet]
-        public async Task<IActionResult> Search(string? q)
+        public async Task<IActionResult> Search(
+            string? q,
+            string scope = "all",
+            string status = "all",
+            int? categoryId = null,
+            string sort = "newest")
         {
             var userId = GetCurrentUserId();
 
             var query = q?.Trim() ?? string.Empty;
 
+            scope = scope?.ToLowerInvariant() switch
+            {
+                "incoming" => "incoming",
+                "sent" => "sent",
+                _ => "all"
+            };
+
+            status = status?.ToLowerInvariant() switch
+            {
+                "unread" => "unread",
+                "read" => "read",
+                _ => "all"
+            };
+
+            sort = sort?.ToLowerInvariant() == "oldest"
+                ? "oldest"
+                : "newest";
+
+            if (categoryId.HasValue)
+            {
+                var categoryIsValid = await _categoryService.IsOwnedByUserAsync(userId, categoryId.Value);
+
+                if (!categoryIsValid)
+                {
+                    categoryId = null;
+                }
+            }
+
             var model = new MessageSearchViewModel
             {
                 Query = query,
+                Scope = scope,
+                Status = status,
+                Sort = sort,
+                CategoryId = categoryId,
+
+                Categories = await _categoryService.GetOptionsAsync(userId),
+
+                Messages = await _messageQueryService.SearchAsync(
+                    userId,
+                    query,
+                    scope,
+                    status,
+                    categoryId,
+                    sort)
             };
-
-            if (!string.IsNullOrWhiteSpace(query))
-            {
-                model.Messages = await _messageQueryService
-                    .SearchAsync(userId, query);
-            }
-
             return View(model);
         }
         #endregion

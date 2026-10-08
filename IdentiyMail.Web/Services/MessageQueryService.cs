@@ -7,53 +7,118 @@ namespace IdentiyMail.Web.Services
 {
     public class MessageQueryService(AppDbContext _context) : IMessageQueryService
     {
-        public async Task<List<MessageSearchItemViewModel>> SearchAsync(int userId, string query)
+        public async Task<List<MessageSearchItemViewModel>> SearchAsync(
+            int userId, 
+            string query,
+            string scope,
+            string status,
+            int? categoryId,
+            string sort)
         {
             query = query.Trim();
 
-            if (string.IsNullOrWhiteSpace(query))
+            scope = scope?.ToLowerInvariant() switch
             {
-                return new();
-            }
+                "incoming" => "incoming",
+                "sent" => "sent",
+                _ => "all"
+            };
 
-            var messages = await _context.UserMessages
+            status = status?.ToLowerInvariant() switch
+            {
+                "unread" => "unread",
+                "read" => "read",
+                _ => "all"
+            };
+
+            sort = sort?.ToLowerInvariant() == "oldest"
+                ? "oldest"
+                : "newest";
+
+            var messagesQuery = _context.UserMessages
                 .AsNoTracking()
                 .Where(x =>
-                    (
+                (
+                    x.ReceiverId == userId &&
+                    !x.IsDeletedByReceiver &&
+                    !x.IsPermanentlyDeletedByReceiver
+                )
+                ||
+                (
+                    x.SenderId == userId &&
+                    !x.IsDeletedBySender &&
+                    !x.IsPermanentlyDeletedBySender
+                ));
+
+            messagesQuery = scope switch
+            {
+                "incoming" =>
+                    messagesQuery.Where(x =>
                         x.ReceiverId == userId &&
                         !x.IsDeletedByReceiver &&
-                        !x.IsPermanentlyDeletedByReceiver
-                    )
-                    ||
-                    (
+                        !x.IsPermanentlyDeletedByReceiver),
+
+                "sent" =>
+                    messagesQuery.Where(x =>
                         x.SenderId == userId &&
                         !x.IsDeletedBySender &&
-                        !x.IsPermanentlyDeletedBySender
-                    ))
-                .Where(x =>
+                        !x.IsPermanentlyDeletedBySender),
+
+                _ => messagesQuery
+            };
+
+            messagesQuery = status switch
+            {
+                "unread" => messagesQuery.Where(x => !x.IsRead),
+
+                "read" => messagesQuery.Where(x => x.IsRead),
+
+                _ => messagesQuery
+            };
+
+            if (categoryId.HasValue)
+            {
+                messagesQuery = messagesQuery.Where(x =>
+                    x.CategoryAssignments.Any(a =>
+                        a.UserId == userId &&
+                        a.CategoryId == categoryId.Value));
+            }
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                messagesQuery = messagesQuery.Where(x =>
                     x.Subject.Contains(query) ||
                     x.Body.Contains(query) ||
 
                     x.Sender.FirstName.Contains(query) ||
                     x.Sender.LastName.Contains(query) ||
+
                     (x.Sender.Email != null &&
                      x.Sender.Email.Contains(query)) ||
 
                     x.Receiver.FirstName.Contains(query) ||
                     x.Receiver.LastName.Contains(query) ||
+
                     (x.Receiver.Email != null &&
                      x.Receiver.Email.Contains(query)) ||
 
                     x.CategoryAssignments.Any(a =>
                         a.UserId == userId &&
-                        a.Category.Name.Contains(query)))
-                .OrderByDescending(x => x.SendDate)
+                        a.Category.Name.Contains(query)));
+            }
+
+            messagesQuery = sort == "oldest"
+                ? messagesQuery.OrderBy(x => x.SendDate)
+                : messagesQuery.OrderByDescending(x => x.SendDate);
+
+            var messages = await messagesQuery                
                 .Select(x => new
                 {
                     x.Id,
                     x.Subject,
                     x.Body,
                     x.SendDate,
+                    x.IsRead,
 
                     x.SenderId,
                     x.ReceiverId,
@@ -115,6 +180,8 @@ namespace IdentiyMail.Web.Services
                     SendDate = x.SendDate,
 
                     IsIncoming = isIncoming,
+
+                    IsRead = x.IsRead,
 
                     Category = string.IsNullOrWhiteSpace(x.CategoryName)
                         ? null

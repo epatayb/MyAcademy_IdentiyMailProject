@@ -30,6 +30,133 @@
                 }
             </div>
         </div>
+
+        @* #region Arama filtreleri *@
+
+        <form asp-controller="Message"
+              asp-action="Search"
+              method="get"
+              class="mail-search-filters">
+
+            <input type="hidden" name="q" value="@Model.Query" />
+
+            <div class="mail-search-filter-group">
+
+                <label>
+                    Kutu
+                </label>
+
+                <select name="scope">
+
+                    <option value="all" selected="@(Model.Scope == "all")">
+                        Tümü
+                    </option>
+
+                    <option value="incoming" selected="@(Model.Scope == "incoming")">
+                        Gelen
+                    </option>
+
+                    <option value="sent" selected="@(Model.Scope == "sent")">
+                        Gönderilen
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="mail-search-filter-group">
+
+                <label>
+                    Durum
+                </label>
+
+                <select name="status">
+
+                    <option value="all" selected="@(Model.Status == "all")">
+                        Tümü
+                    </option>
+
+                    <option value="unread" selected="@(Model.Status == "unread")">
+                        Okunmamış
+                    </option>
+
+                    <option value="read" selected="@(Model.Status == "read")">
+                        Okunmuş
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="mail-search-filter-group">
+
+                <label>
+                    Kategori
+                </label>
+
+                <select name="categoryId">
+
+                    <option value="">
+                        Tüm Kategoriler
+                    </option>
+
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">
+                            @category.Name
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+
+            <div class="mail-search-filter-group">
+
+                <label>
+                    Sıralama
+                </label>
+
+                <select name="sort">
+
+                    <option value="newest" selected="@(Model.Sort == "newest")">
+                        En Yeni
+                    </option>
+
+                    <option value="oldest" selected="@(Model.Sort == "oldest")">
+                        En Eski
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <button type="submit" class="mail-search-filter-button">
+
+                <span class="material-symbols-outlined">
+                    tune
+                </span>
+
+                Uygula
+
+            </button>
+
+
+            <a asp-controller="Message"
+               asp-action="Search"
+               asp-route-q="@Model.Query"
+               class="mail-search-filter-clear">
+
+                Temizle
+            </a>
+
+        </form>
+
+        @* #endregion *@
                 
         @if (string.IsNullOrWhiteSpace(Model.Query))
         {
