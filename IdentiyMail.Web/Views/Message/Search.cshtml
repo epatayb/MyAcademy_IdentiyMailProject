@@ -13,7 +13,7 @@
                 <div class="mail-inbox-title-row">
                     <h1>Arama Sonuçları</h1>
 
-                    @if (!string.IsNullOrWhiteSpace(Model.Query))
+                    @if (Model.HasSearchCriteria)
                     {
                         <span class="mail-unread-summary">
                             @Model.Messages.Count sonuç
@@ -21,11 +21,22 @@
                     }
                 </div>
 
-                @if (!string.IsNullOrWhiteSpace(Model.Query))
+                @if (Model.HasSearchCriteria)
                 {
                     <span class="mail-inbox-total">
-                        "<strong>@Model.Query</strong>"
-                        için bulunan mesajlar
+                        @if (!string.IsNullOrWhiteSpace(Model.Query))
+                        {
+                            <text>
+                                "<strong>@Model.Query</strong>"
+                                için bulunan mesajlar
+                            </text>
+                        }else
+                        {
+                            <text>
+                                Seçilen filtrelere uygun mesajlar
+                            </text>
+                        }
+
                     </span>
                 }
             </div>
@@ -151,14 +162,14 @@
                asp-route-q="@Model.Query"
                class="mail-search-filter-clear">
 
-                Temizle
+                Filtreleri Temizle
             </a>
 
         </form>
 
         @* #endregion *@
                 
-        @if (string.IsNullOrWhiteSpace(Model.Query))
+        @if (!Model.HasSearchCriteria)
         {
             <div class="mail-empty-state">
 

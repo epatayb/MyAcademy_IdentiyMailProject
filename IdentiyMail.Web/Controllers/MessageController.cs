@@ -116,16 +116,20 @@ namespace IdentiyMail.Web.Controllers
                 Sort = sort,
                 CategoryId = categoryId,
 
-                Categories = await _categoryService.GetOptionsAsync(userId),
-
-                Messages = await _messageQueryService.SearchAsync(
+                Categories = await _categoryService.GetOptionsAsync(userId)
+            };
+            
+            if (model.HasSearchCriteria)
+            {
+                model.Messages = await _messageQueryService.SearchAsync(
                     userId,
                     query,
                     scope,
                     status,
                     categoryId,
-                    sort)
-            };
+                    sort);
+            }
+
             return View(model);
         }
         #endregion

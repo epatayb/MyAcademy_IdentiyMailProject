@@ -18,6 +18,12 @@ namespace IdentiyMail.Web.ViewModels.MessageViewModels
         public List<CategoryOptionDto> Categories { get; set; } = new();
 
         public List<MessageSearchItemViewModel> Messages { get; set; } = new();
+
+        public bool HasSearchCriteria =>
+            !string.IsNullOrWhiteSpace(Query) ||
+            Scope != "all" ||
+            Status != "all" ||
+            CategoryId.HasValue;
     }
 
     public class MessageSearchItemViewModel
