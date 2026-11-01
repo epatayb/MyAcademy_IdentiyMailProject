@@ -24,6 +24,24 @@ namespace IdentiyMail.Web.ViewModels.MessageViewModels
             Scope != "all" ||
             Status != "all" ||
             CategoryId.HasValue;
+
+        public int CurrentPage { get; set; } = 1;
+
+        public int PageSize { get; set; } = 10;
+
+        public int TotalCount { get; set; }
+
+        public int TotalPages => TotalCount == 0 ? 0 : (int)Math.Ceiling(TotalCount / (double)PageSize);
+
+        public bool HasPreviousPage => CurrentPage > 1;
+
+        public bool HasNextPage => CurrentPage < TotalPages;
+
+        public int FirstItemNumber => TotalCount == 0
+            ? 0
+            : ((CurrentPage - 1) * PageSize) + 1;
+
+        public int LastItemNumber => Math.Min(CurrentPage * PageSize, TotalCount);
     }
 
     public class MessageSearchItemViewModel

@@ -74,7 +74,8 @@ namespace IdentiyMail.Web.Controllers
             string scope = "all",
             string status = "all",
             int? categoryId = null,
-            string sort = "newest")
+            string sort = "newest",
+            int page = 1)
         {
             var userId = GetCurrentUserId();
 
@@ -98,6 +99,12 @@ namespace IdentiyMail.Web.Controllers
                 ? "oldest"
                 : "newest";
 
+            page = page < 1
+                ? 1
+                : page;
+
+            const int pageSize = 10;
+
             if (categoryId.HasValue)
             {
                 var categoryIsValid = await _categoryService.IsOwnedByUserAsync(userId, categoryId.Value);
@@ -116,18 +123,29 @@ namespace IdentiyMail.Web.Controllers
                 Sort = sort,
                 CategoryId = categoryId,
 
+                CurrentPage = page,
+                PageSize = pageSize,
+
                 Categories = await _categoryService.GetOptionsAsync(userId)
             };
             
             if (model.HasSearchCriteria)
             {
-                model.Messages = await _messageQueryService.SearchAsync(
+                var result = await _messageQueryService.SearchAsync(
                     userId,
                     query,
                     scope,
                     status,
                     categoryId,
-                    sort);
+                    sort,
+                    page,
+                    pageSize);
+
+                model.Messages = result.Items;
+
+                model.TotalCount = result.TotalCount;
+
+                model.CurrentPage = result.Page;
             }
 
             return View(model);

@@ -16,7 +16,7 @@
                     @if (Model.HasSearchCriteria)
                     {
                         <span class="mail-unread-summary">
-                            @Model.Messages.Count sonuç
+                            @Model.TotalCount sonuç
                         </span>
                     }
                 </div>
@@ -294,6 +294,78 @@
                 }
 
             </div>
+        }
+
+        @if(Model.TotalPages > 1)
+        {
+            @* #region Arama sayfalama *@
+            <div class="mail-pagination">
+                <span class="mail-pagination-summary">
+                    @Model.FirstItemNumber-@Model.LastItemNumber
+                    / @Model.TotalCount
+                </span>
+
+                <div class="mail-pagination-actions">
+                    @if(Model.HasPreviousPage)
+                    {
+                        <a asp-controller="Message"
+                            asp-action="Search"
+                            asp-route-q="@Model.Query"
+                            asp-route-scope="@Model.Scope"
+                            asp-route-status="@Model.Status"
+                            asp-route-categoryId="@Model.CategoryId"
+                            asp-route-sort="@Model.Sort"
+                            asp-route-page="@(Model.CurrentPage - 1)"
+                            class="mail-pagination-button"
+                            title="Önceki Sayfa">
+
+                            <span class="material-symbols-outlined">
+                                chevron_left
+                            </span>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="mail-pagination-button is-disabled">
+                            <span class="material-symbols-outlined">
+                                chevron_left
+                            </span>
+                        </span>
+                    }
+
+                    <span class="mail-pagination-page">
+                        @Model.CurrentPage / @Model.TotalPages
+                    </span>
+
+                    @if (Model.HasNextPage)
+                    {
+                        <a asp-controller="Message"
+                           asp-action="Search"
+                           asp-route-q="@Model.Query"
+                           asp-route-scope="@Model.Scope"
+                           asp-route-status="@Model.Status"
+                           asp-route-categoryId="@Model.CategoryId"
+                           asp-route-sort="@Model.Sort"
+                           asp-route-page="@(Model.CurrentPage + 1)"
+                           class="mail-pagination-button"
+                           title="Sonraki Sayfa">
+
+                            <span class="material-symbols-outlined">
+                                chevron_right
+                            </span>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="mail-pagination-button is-disabled">
+                            <span class="material-symbols-outlined">
+                                chevron_right
+                            </span>
+                        </span>
+                    }
+                </div>
+            </div>
+            @* #endregion *@
         }
     </div>
 </section>

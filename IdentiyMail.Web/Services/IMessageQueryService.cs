@@ -1,15 +1,18 @@
-﻿using IdentiyMail.Web.ViewModels.MessageViewModels;
+﻿using IdentiyMail.Web.Models.Common;
+using IdentiyMail.Web.ViewModels.MessageViewModels;
 
 namespace IdentiyMail.Web.Services
 {
     public interface IMessageQueryService
     {
-        Task<List<MessageSearchItemViewModel>> SearchAsync(
+        Task<PagedResult<MessageSearchItemViewModel>> SearchAsync(
             int userId, 
             string query,
             string scope,
             string status,
             int? categoryId,
-            string sort);
+            string sort,
+            int page,
+            int pageSize);
     }
 }

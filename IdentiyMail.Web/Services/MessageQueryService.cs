@@ -1,4 +1,5 @@
 ﻿using IdentiyMail.Web.Context;
+using IdentiyMail.Web.Models.Common;
 using IdentiyMail.Web.ViewModels.CategoryViewModels;
 using IdentiyMail.Web.ViewModels.MessageViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -7,13 +8,15 @@ namespace IdentiyMail.Web.Services
 {
     public class MessageQueryService(AppDbContext _context) : IMessageQueryService
     {
-        public async Task<List<MessageSearchItemViewModel>> SearchAsync(
+        public async Task<PagedResult<MessageSearchItemViewModel>> SearchAsync(
             int userId, 
             string query,
             string scope,
             string status,
             int? categoryId,
-            string sort)
+            string sort,
+            int page,
+            int pageSize)
         {
             query = query.Trim();
 
@@ -111,7 +114,24 @@ namespace IdentiyMail.Web.Services
                 ? messagesQuery.OrderBy(x => x.SendDate)
                 : messagesQuery.OrderByDescending(x => x.SendDate);
 
-            var messages = await messagesQuery                
+            #region pagination
+            page = page < 1 ? 1 : page;
+            
+            pageSize = pageSize <= 0 ? 10 : pageSize;
+
+            var totalCount = await messagesQuery.CountAsync();
+
+            var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            if (totalPages > 0 && page > totalPages)
+            {
+                page = totalPages;  
+            }
+            #endregion
+
+            var messages = await messagesQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(x => new
                 {
                     x.Id,
@@ -145,54 +165,63 @@ namespace IdentiyMail.Web.Services
                 })
                 .ToListAsync();
 
-            return messages.Select(x =>
-            {
-                var isIncoming = x.ReceiverId == userId;
-
-                var firstName = isIncoming
-                    ? x.SenderFirstName
-                    : x.ReceiverFirstName;
-
-                var lastName = isIncoming
-                    ? x.SenderLastName
-                    : x.ReceiverLastName;
-
-                return new MessageSearchItemViewModel
+            var items = messages
+                .Select(x =>
                 {
-                    Id = x.Id,
+                    var isIncoming = x.ReceiverId == userId;
 
-                    ContactFullName = $"{firstName} {lastName}".Trim(),
+                    var firstName = isIncoming
+                        ? x.SenderFirstName
+                        : x.ReceiverFirstName;
 
-                    ContactEmail = isIncoming
-                        ? x.SenderEmail ?? string.Empty
-                        : x.ReceiverEmail ?? string.Empty,
+                    var lastName = isIncoming
+                        ? x.SenderLastName
+                        : x.ReceiverLastName;
 
-                    ContactProfileImageUrl = isIncoming
-                        ? x.SenderProfileImageUrl
-                        : x.ReceiverProfileImageUrl,
+                    return new MessageSearchItemViewModel
+                    {
+                        Id = x.Id,
 
-                    ContactInitials = CreateInitials(firstName, lastName),
+                        ContactFullName = $"{firstName} {lastName}".Trim(),
 
-                    Subject = x.Subject,
+                        ContactEmail = isIncoming
+                            ? x.SenderEmail ?? string.Empty
+                            : x.ReceiverEmail ?? string.Empty,
 
-                    Preview = CreateMessagePreview(x.Body),
+                        ContactProfileImageUrl = isIncoming
+                            ? x.SenderProfileImageUrl
+                            : x.ReceiverProfileImageUrl,
 
-                    SendDate = x.SendDate,
+                        ContactInitials = CreateInitials(firstName, lastName),
 
-                    IsIncoming = isIncoming,
+                        Subject = x.Subject,
 
-                    IsRead = x.IsRead,
+                        Preview = CreateMessagePreview(x.Body),
 
-                    Category = string.IsNullOrWhiteSpace(x.CategoryName)
-                        ? null
-                        : new CategoryBadgeViewModel
-                        {
-                            Name = x.CategoryName,
-                            ColorHex = x.CategoryColor ?? "#667085"
-                        }
-                };
-            })
-            .ToList();
+                        SendDate = x.SendDate,
+
+                        IsIncoming = isIncoming,
+
+                        IsRead = x.IsRead,
+
+                        Category = string.IsNullOrWhiteSpace(x.CategoryName)
+                            ? null
+                            : new CategoryBadgeViewModel
+                            {
+                                Name = x.CategoryName,
+                                ColorHex = x.CategoryColor ?? "#667085"
+                            }
+                    };
+                })
+                .ToList();
+
+            return new PagedResult<MessageSearchItemViewModel>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
         }
 
         private static string CreateInitials(string firstName, string lastName)

@@ -2197,3 +2197,77 @@ body {
 }
 
 /* #endregion */
+
+/* #region Mesaj sayfalama */
+
+.mail-pagination {
+    min-height: 52px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    border-top: 1px solid var(--mail-border);
+    background: var(--mail-surface);
+}
+
+.mail-pagination-summary {
+    color: var(--mail-text-muted);
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.mail-pagination-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.mail-pagination-button {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    color: var(--mail-text-muted);
+    text-decoration: none;
+    transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+
+    .mail-pagination-button:hover {
+        border-color: var(--mail-border);
+        background: var(--mail-surface-soft);
+        color: var(--mail-primary);
+    }
+
+    .mail-pagination-button
+    .material-symbols-outlined {
+        font-size: 18px;
+    }
+
+    .mail-pagination-button.is-disabled {
+        opacity: .35;
+        cursor: default;
+        pointer-events: none;
+    }
+
+.mail-pagination-page {
+    min-width: 46px;
+    color: var(--mail-text);
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+}
+
+
+@media (max-width: 768px) {
+
+    .mail-pagination {
+        padding: 8px 10px;
+        justify-content: space-between;
+    }
+}
+
+/* #endregion */
