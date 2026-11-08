@@ -1,4 +1,4 @@
-﻿@model List<InboxMessageViewModel>
+﻿@model ImportantMessagesViewModel
 
 @{
     ViewData["Title"] = "Önemli";
@@ -13,7 +13,7 @@
                     <h1>Önemli</h1>
 
                     <span class="mail-unread-summary">
-                        @Model.Count mesaj
+                        @Model.Messages.Count mesaj
                     </span>
                 </div>
 
@@ -26,7 +26,7 @@
 
         
         @* #region Önemli mesaj listesi *@
-        @if (Model.Count == 0)
+        @if (Model.Messages.Count == 0)
         {
             <div class="mail-empty-state">
                 <span class="material-symbols-outlined">
@@ -43,11 +43,13 @@
         else
         {
             <div class="mail-message-list">
-                @foreach (var item in Model)
+                @foreach (var item in Model.Messages)
                 {
                     <partial name="_MessageRow" model="item" />
                 }
             </div>
+
+            <partial name="_MailPagination" model="Model.Pagination" />
         }
         @* #endregion *@
     </div>

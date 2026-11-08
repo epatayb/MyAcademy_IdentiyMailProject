@@ -111,8 +111,8 @@ namespace IdentiyMail.Web.Services
             }
 
             messagesQuery = sort == "oldest"
-                ? messagesQuery.OrderBy(x => x.SendDate)
-                : messagesQuery.OrderByDescending(x => x.SendDate);
+                ? messagesQuery.OrderBy(x => x.SendDate).ThenBy(x => x.Id)
+                : messagesQuery.OrderByDescending(x => x.SendDate).ThenByDescending(x => x.Id);
 
             #region pagination
             page = page < 1 ? 1 : page;
@@ -123,10 +123,7 @@ namespace IdentiyMail.Web.Services
 
             var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize);
 
-            if (totalPages > 0 && page > totalPages)
-            {
-                page = totalPages;  
-            }
+            page = totalPages == 0 ? 1 : Math.Min(page, totalPages);
             #endregion
 
             var messages = await messagesQuery

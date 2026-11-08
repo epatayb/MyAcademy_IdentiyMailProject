@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using IdentiyMail.Web.ViewModels.Common;
 
 namespace IdentiyMail.Web.Controllers
 {
@@ -16,13 +17,16 @@ namespace IdentiyMail.Web.Controllers
     public class MessageController(UserManager<AppUser> _userManager, AppDbContext _context, ICategoryService _categoryService, IMessageQueryService _messageQueryService) : Controller
     {
         #region Gelen kutusu listeleme ve filtreleme
-        public async Task<IActionResult> Index(string status = "all")
+        public async Task<IActionResult> Index(string status = "all", int page = 1)
         {
             var userId = GetCurrentUserId();
+
+            const int pageSize = 10;
 
             #region Gelen kutusu temel sorgusu
 
             var inboxQuery = _context.UserMessages
+                .AsNoTracking()
                 .Where(x => x.ReceiverId == userId && !x.IsDeletedByReceiver);
 
             var totalCount = await inboxQuery.CountAsync();
@@ -49,7 +53,27 @@ namespace IdentiyMail.Web.Controllers
 
             #endregion
 
-            var messageViewModels = await GetInboxMessageItemsAsync(filteredQuery, userId);
+            #region Sayfalama
+
+            var filteredCount = await filteredQuery.CountAsync();
+
+            var totalPages = filteredCount == 0
+                ? 0
+                : (int)Math.Ceiling(filteredCount / (double)pageSize);
+
+            page = totalPages == 0
+                ? 1
+                : Math.Clamp(page, 1, totalPages);
+
+            var pagedQuery = filteredQuery
+                .OrderByDescending(x => x.SendDate)
+                .ThenByDescending(x => x.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
+
+            #endregion
+
+            var messageViewModels = await GetInboxMessageItemsAsync(pagedQuery, userId);
 
             #region Gelen kutusu ekran modelini hazırlama
 
@@ -58,7 +82,20 @@ namespace IdentiyMail.Web.Controllers
                 Messages = messageViewModels,
                 TotalCount = totalCount,
                 UnreadCount = unreadCount,
-                Status = status
+                Status = status,
+
+                Pagination = new MailPaginationViewModel
+                {
+                    Action = nameof(Index),
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    TotalCount = filteredCount,
+
+                    RouteValues = new Dictionary<string, string>
+                    {
+                        ["status"] = status,
+                    }
+                }
             };
 
             #endregion
@@ -298,14 +335,34 @@ namespace IdentiyMail.Web.Controllers
 
         #region Gönderilen mesajları listeleme
         [HttpGet]
-        public async Task<IActionResult> Sent()
+        public async Task<IActionResult> Sent(int page = 1)
         {
             var userId = GetCurrentUserId();
 
-            var messages = await _context.UserMessages
+            const int pageSize = 10;
+
+            var sentQuery = _context.UserMessages
                 .AsNoTracking()
-                .Where(x => x.SenderId == userId && !x.IsDeletedBySender && !x.IsPermanentlyDeletedBySender)
+                .Where(x =>
+                    x.SenderId == userId &&
+                    !x.IsDeletedBySender &&
+                    !x.IsPermanentlyDeletedBySender);
+
+            var totalCount = await sentQuery.CountAsync();
+
+            var totalPages = totalCount == 0
+                ? 0
+                : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            page = totalPages == 0
+                ? 1
+                : Math.Clamp(page, 1, totalPages);
+
+            var messages = await sentQuery
                 .OrderByDescending(x => x.SendDate)
+                .ThenByDescending(x => x.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(x => new
                 {
                     x.Id,
@@ -329,28 +386,39 @@ namespace IdentiyMail.Web.Controllers
                 })
                 .ToListAsync();
 
-            var model = messages
-                .Select(x => new SentMessageViewModel
-                {
-                    Id = x.Id,
-                    ReceiverFullName = $"{x.ReceiverFirstName} {x.ReceiverLastName}".Trim(),
-                    ReceiverEmail = x.ReceiverEmail ?? string.Empty,
-                    ReceiverProfileImageUrl = x.ProfileImageUrl,
-                    ReceiverInitials = CreateInitials(x.ReceiverFirstName, x.ReceiverLastName),
-                    Subject = x.Subject,
-                    Preview = CreateMessagePreview(x.Body),
-                    SendDate = x.SendDate,
-                    IsRead = x.IsRead,
-                    Category = string.IsNullOrWhiteSpace(x.CategoryName)
-                        ? null
-                        : new CategoryBadgeViewModel
-                        {
-                            Name = x.CategoryName,                            
-                            ColorHex = x.CategoryColor ?? "#667085"
-                        }
-                })
-                .ToList();
+            var model = new SentMessagesViewModel
+            {
+                Messages = messages
+                    .Select(x => new SentMessageViewModel
+                    {
+                        Id = x.Id,
+                        ReceiverFullName = $"{x.ReceiverFirstName} {x.ReceiverLastName}".Trim(),
+                        ReceiverEmail = x.ReceiverEmail ?? string.Empty,
+                        ReceiverProfileImageUrl = x.ProfileImageUrl,
+                        ReceiverInitials = CreateInitials(x.ReceiverFirstName, x.ReceiverLastName),
+                        Subject = x.Subject,
+                        Preview = CreateMessagePreview(x.Body),
+                        SendDate = x.SendDate,
+                        IsRead = x.IsRead,
+                        Category = string.IsNullOrWhiteSpace(x.CategoryName)
+                            ? null
+                            : new CategoryBadgeViewModel
+                            {
+                                Name = x.CategoryName,
+                                ColorHex = x.CategoryColor ?? "#667085"
+                            }
+                    })
+                    .ToList(),
 
+                Pagination = new MailPaginationViewModel
+                {
+                    Action = nameof(Sent),
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    TotalCount = totalCount,
+                }
+
+            };
             return View(model);
         }
         #endregion
@@ -725,14 +793,46 @@ namespace IdentiyMail.Web.Controllers
         #endregion
 
         #region Önemli mesajları listeleme
-        public async Task<IActionResult> Important()
+        public async Task<IActionResult> Important(int page = 1)
         {
             var userId = GetCurrentUserId();
 
+            const int pageSize = 10;
+
             var query = _context.UserMessages
+                .AsNoTracking()
                 .Where(x => x.ReceiverId == userId && x.IsImportant && !x.IsDeletedByReceiver);
 
-            var model = await GetInboxMessageItemsAsync(query, userId);
+            var totalCount = await query.CountAsync();
+
+            var totalPages = totalCount == 0
+                ? 0
+                : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            page = totalPages == 0
+                ? 1
+                : Math.Clamp(page, 1, totalPages);
+
+            var pagedQuery = query
+                .OrderByDescending(x => x.SendDate)
+                .ThenByDescending(x => x.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
+
+            var messages = await GetInboxMessageItemsAsync(pagedQuery, userId);
+
+            var model = new ImportantMessagesViewModel
+            {
+                Messages = messages,
+
+                Pagination = new MailPaginationViewModel
+                {
+                    Action = nameof(Important),
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    TotalCount = totalCount
+                }
+            };
 
             return View(model);
         }

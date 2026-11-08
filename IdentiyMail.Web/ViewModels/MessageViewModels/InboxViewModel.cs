@@ -1,4 +1,6 @@
-﻿namespace IdentiyMail.Web.ViewModels.MessageViewModels
+﻿using IdentiyMail.Web.ViewModels.Common;
+
+namespace IdentiyMail.Web.ViewModels.MessageViewModels
 {
     public class InboxViewModel
     {
@@ -9,5 +11,7 @@
         public int UnreadCount { get; set; }
 
         public string Status { get; set; } = "all";
+
+        public MailPaginationViewModel Pagination { get; set; } = new();
     }
 }

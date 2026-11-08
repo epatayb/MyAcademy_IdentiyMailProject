@@ -1,0 +1,80 @@
+﻿@model IdentiyMail.Web.ViewModels.Common.MailPaginationViewModel
+
+@{
+    var previousRouteValues = new Dictionary<string, string>(Model.RouteValues)
+    {
+        ["page"] = (Model.CurrentPage - 1).ToString()
+    };
+
+    var nextRouteValues = new Dictionary<string, string>(Model.RouteValues)
+    {
+        ["page"] = (Model.CurrentPage + 1).ToString()
+    };
+}
+
+@if (Model.TotalPages > 1)
+{
+    @* #region Mesaj sayfalama *@
+
+    <div class="mail-pagination">
+
+        <span class="mail-pagination-summary">
+            @Model.FirstItemNumber–@Model.LastItemNumber
+            / @Model.TotalCount
+        </span>
+
+        <div class="mail-pagination-actions">
+
+            @if (Model.HasPreviousPage)
+            {
+                <a asp-controller="@Model.Controller"
+                   asp-action="@Model.Action"
+                   asp-all-route-data="@previousRouteValues"
+                   class="mail-pagination-button"
+                   title="Önceki sayfa">
+
+                    <span class="material-symbols-outlined">
+                        chevron_left
+                    </span>
+                </a>
+            }
+            else
+            {
+                <span class="mail-pagination-button is-disabled">
+                    <span class="material-symbols-outlined">
+                        chevron_left
+                    </span>
+                </span>
+            }
+
+            <span class="mail-pagination-page">
+                @Model.CurrentPage / @Model.TotalPages
+            </span>
+
+            @if (Model.HasNextPage)
+            {
+                <a asp-controller="@Model.Controller"
+                   asp-action="@Model.Action"
+                   asp-all-route-data="@nextRouteValues"
+                   class="mail-pagination-button"
+                   title="Sonraki sayfa">
+
+                    <span class="material-symbols-outlined">
+                        chevron_right
+                    </span>
+                </a>
+            }
+            else
+            {
+                <span class="mail-pagination-button is-disabled">
+                    <span class="material-symbols-outlined">
+                        chevron_right
+                    </span>
+                </span>
+            }
+
+        </div>
+    </div>
+
+    @* #endregion *@
+}
