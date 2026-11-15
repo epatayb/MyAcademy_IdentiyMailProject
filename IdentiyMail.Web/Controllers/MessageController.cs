@@ -1004,9 +1004,11 @@ namespace IdentiyMail.Web.Controllers
 
         #region Kategoriye göre mesajları listeleme
         [HttpGet]
-        public async Task<IActionResult> ByCategory(int id)
+        public async Task<IActionResult> ByCategory(int id, int page = 1)
         {
             var userId = GetCurrentUserId();
+
+            const int pageSize = 10;
 
             var category = await _categoryService.GetByIdAsync(userId, id);
 
@@ -1015,7 +1017,7 @@ namespace IdentiyMail.Web.Controllers
                 return NotFound();
             }
 
-            var messages = await _context.MessageCategoryAssignments
+            var categoryMessagesQuery = _context.MessageCategoryAssignments
                 .AsNoTracking()
                 .Where(x =>
                     x.UserId == userId &&
@@ -1032,8 +1034,23 @@ namespace IdentiyMail.Web.Controllers
                             !x.Message.IsDeletedByReceiver &&
                             !x.Message.IsPermanentlyDeletedByReceiver
                         )
-                    ))
+                    ));
+
+            var totalCount = await categoryMessagesQuery.CountAsync();
+
+            var totalPages = totalCount == 0
+                ? 0
+                : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            page = totalPages == 0
+                ? 1
+                : Math.Clamp(page, 1, totalPages);
+
+            var messages = await categoryMessagesQuery
                 .OrderByDescending(x => x.Message.SendDate)
+                .ThenByDescending(x => x.Message.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)                
                 .Select(x => new
                 {
                     x.Message.Id,
@@ -1094,7 +1111,20 @@ namespace IdentiyMail.Web.Controllers
                 CategoryId = category.Id,
                 CategoryName = category.Name,
                 ColorHex = category.ColorHex,
-                Messages = messageItems
+                Messages = messageItems,
+
+                Pagination = new MailPaginationViewModel
+                {
+                    Action = nameof(ByCategory),
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    TotalCount = totalCount,
+                    
+                    RouteValues = new Dictionary<string, string>
+                    {
+                        ["id"] = id.ToString()
+                    }
+                }
             };
 
             return View(model);

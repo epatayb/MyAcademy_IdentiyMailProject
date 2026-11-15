@@ -1,4 +1,6 @@
-﻿namespace IdentiyMail.Web.ViewModels.MessageViewModels
+﻿using IdentiyMail.Web.ViewModels.Common;
+
+namespace IdentiyMail.Web.ViewModels.MessageViewModels
 {
     public class CategoryMessagesViewModel
     {
@@ -9,6 +11,8 @@
         public string ColorHex { get; set; } = string.Empty;
 
         public List<CategoryMessageItemViewModel> Messages { get; set; } = new();
+
+        public MailPaginationViewModel Pagination { get; set; } = new();
     }
 
     public class CategoryMessageItemViewModel

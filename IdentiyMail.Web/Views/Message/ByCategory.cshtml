@@ -16,7 +16,7 @@
                     <h1>@Model.CategoryName</h1>
 
                     <span class="mail-unread-summary">
-                        @Model.Messages.Count mesaj
+                        @Model.Pagination.TotalCount mesaj
                     </span>
                 </div>
 
@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        @if (Model.Messages.Count == 0)
+        @if (Model.Pagination.TotalCount == 0)
         {
             <div class="mail-empty-state">
                 <span class="material-symbols-outlined">label</span>
@@ -116,6 +116,8 @@
                     </a>
                 }
             </div>
+
+            <partial name="_MailPagination" model="Model.Pagination" />
         }
     </div>
 </section>
