@@ -1,5 +1,5 @@
 ﻿@using System.Globalization
-@model List<TrashMessageViewModel>
+@model TrashMessagesViewModel
 
 @{
     ViewData["Title"] = "Çöp kutusu";
@@ -14,10 +14,10 @@
                 <div class="mail-inbox-title-row">
                     <h1>Çöp Kutusu</h1>
 
-                    @if (Model.Count > 0)
+                    @if (Model.Pagination.TotalCount > 0)
                     {
                         <span class="mail-unread-summary">
-                            @Model.Count mesaj
+                            @Model.Pagination.TotalCount mesaj
                         </span>
                     }
                 </div>
@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        @if (Model.Count == 0)
+        @if (Model.Pagination.TotalCount == 0)
         {
             <div class="mail-empty-state">
                 <span class="material-symbols-outlined">
@@ -44,7 +44,7 @@
         else
         {
             <div class="mail-trash-list">
-                @foreach (var item in Model)
+                @foreach (var item in Model.Messages)
                 {
                     <div class="mail-trash-row">
                         @if (!string.IsNullOrWhiteSpace(item.ContactProfileImageUrl))
@@ -153,6 +153,8 @@
                     </div>
                 }
             </div>
+
+            <partial name="_MailPagination" model="Model.Pagination"/>
         }
     </div>
 </section>

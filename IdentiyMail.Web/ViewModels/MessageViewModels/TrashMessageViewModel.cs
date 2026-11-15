@@ -1,5 +1,14 @@
-﻿namespace IdentiyMail.Web.ViewModels.MessageViewModels
+﻿using IdentiyMail.Web.ViewModels.Common;
+
+namespace IdentiyMail.Web.ViewModels.MessageViewModels
 {
+    public class TrashMessagesViewModel
+    {
+        public List<TrashMessageViewModel> Messages { get; set; } = new();
+
+        public MailPaginationViewModel Pagination { get; set; } = new();
+    }
+
     public class TrashMessageViewModel
     {
         public int Id { get; set; }

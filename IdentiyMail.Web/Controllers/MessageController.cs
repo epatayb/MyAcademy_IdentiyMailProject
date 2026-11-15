@@ -495,15 +495,42 @@ namespace IdentiyMail.Web.Controllers
 
         #region Çöp kutusundaki mesajları listeleme
         [HttpGet]
-        public async Task<IActionResult> Trash()
+        public async Task<IActionResult> Trash(int page = 1)
         {
             var userId = GetCurrentUserId();
 
-            var messages = await _context.UserMessages
+            const int pageSize = 10;
+
+            var trashMessagesQuery = _context.UserMessages
                 .AsNoTracking()
-                .Where(x => (x.ReceiverId == userId && x.IsDeletedByReceiver && !x.IsPermanentlyDeletedByReceiver) ||
-                            (x.SenderId == userId && x.IsDeletedBySender && !x.IsPermanentlyDeletedBySender))
+                .Where(x =>
+                    (
+                        x.ReceiverId == userId &&
+                        x.IsDeletedByReceiver &&
+                        !x.IsPermanentlyDeletedByReceiver
+                    )
+                    ||
+                    (
+                        x.SenderId == userId &&
+                        x.IsDeletedBySender &&
+                        !x.IsPermanentlyDeletedBySender
+                    ));
+
+            var totalCount = await trashMessagesQuery.CountAsync();
+
+            var totalPages = totalCount == 0
+                ? 0
+                : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            page = totalPages == 0
+                ? 1
+                : Math.Clamp(page, 1, totalPages);
+
+            var messages = await trashMessagesQuery
                 .OrderByDescending(x => x.SendDate)
+                .ThenByDescending(x => x.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(x => new
                 {
                     x.Id,
@@ -534,7 +561,7 @@ namespace IdentiyMail.Web.Controllers
                 })
                 .ToListAsync();
 
-            var model = messages
+            var messageItems = messages
                 .Select(x =>
                 {
                     var isIncoming = x.ReceiverId == userId && x.IsDeletedByReceiver && !x.IsPermanentlyDeletedByReceiver;
@@ -585,6 +612,19 @@ namespace IdentiyMail.Web.Controllers
                     };
                 })
                 .ToList();
+
+            var model = new TrashMessagesViewModel
+            {
+                Messages = messageItems,
+
+                Pagination = new MailPaginationViewModel
+                {
+                    Action = nameof(Trash),
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    TotalCount = totalCount
+                }
+            };
 
             return View(model);
         }
