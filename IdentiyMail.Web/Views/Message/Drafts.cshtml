@@ -1,5 +1,5 @@
 ﻿@using System.Globalization
-@model List<DraftMessageViewModel>
+@model DraftMessagesViewModel
 
 @{
     ViewData["Title"] = "Taslaklar";
@@ -13,10 +13,10 @@
                 <div class="mail-inbox-title-row">
                     <h1>Taslaklar</h1>
 
-                    @if(Model.Count > 0)
+                    @if(Model.Pagination.TotalCount > 0)
                     {
                         <span class="mail-unread-summary">
-                            @Model.Count taslak
+                            @Model.Pagination.TotalCount taslak
                         </span>
                     }
                 </div>
@@ -34,7 +34,7 @@
             </div>
         }
 
-        @if(Model.Count == 0)
+        @if(Model.Pagination.TotalCount == 0)
         {
             <div class="mail-empty-state">
                 <span class="material-symbols-outlined">
@@ -52,7 +52,7 @@
         else
         {
             <div class="mail-message-list">
-                @foreach(var item in Model)
+                @foreach(var item in Model.Messages)
                 {
                     <div class="mail-message-row-wrapper">
                         <a asp-controller="Message"
@@ -116,6 +116,8 @@
                     </div>
                 }
             </div>
+
+            <partial name="_MailPagination" model="Model.Pagination" />
         }
     </div>
 </section>

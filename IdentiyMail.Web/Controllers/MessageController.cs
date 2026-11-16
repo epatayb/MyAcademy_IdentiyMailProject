@@ -633,14 +633,31 @@ namespace IdentiyMail.Web.Controllers
         #region Taslak mesajları listeleme
 
         [HttpGet]
-        public async Task<IActionResult> Drafts()
+        public async Task<IActionResult> Drafts(int page = 1)
         {
             var userId = GetCurrentUserId();
 
-            var drafts = await _context.DraftMessages
+            const int pageSize = 10;
+
+            var draftsQuery = _context.DraftMessages
                 .AsNoTracking()
-                .Where(x => x.SenderId == userId)
+                .Where(x => x.SenderId == userId);
+
+            var totalCount = await draftsQuery.CountAsync();
+
+            var totalPages = totalCount == 0
+                ? 0
+                : (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            page = totalPages == 0
+                ? 1
+                : Math.Clamp(page, 1, totalPages);
+
+            var drafts = await draftsQuery
                 .OrderByDescending(x => x.UpdatedAt)
+                .ThenByDescending(x => x.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(x => new
                 {
                     x.Id,
@@ -651,7 +668,7 @@ namespace IdentiyMail.Web.Controllers
                 })
                 .ToListAsync();
 
-            var model = drafts
+            var messageItems = drafts
                 .Select(x => new DraftMessageViewModel
                 {
                     Id = x.Id,
@@ -665,6 +682,19 @@ namespace IdentiyMail.Web.Controllers
                     UpdatedAt = x.UpdatedAt
                 })
                 .ToList();
+
+            var model = new DraftMessagesViewModel
+            {
+                Messages = messageItems,
+
+                Pagination = new MailPaginationViewModel
+                {
+                    Action = nameof(Drafts),
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    TotalCount = totalCount
+                }
+            };
 
             return View(model);
         }
